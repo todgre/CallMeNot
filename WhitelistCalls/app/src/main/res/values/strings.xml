@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Whitelist Calls</string>
+    
+    <string name="onboarding_welcome_title">Stop Spam Calls Forever</string>
+    <string name="onboarding_welcome_subtitle">Only people you choose can interrupt you</string>
+    <string name="onboarding_how_it_works">How It Works</string>
+    <string name="onboarding_whitelist_explanation">Add contacts to your whitelist. Everyone else goes straight to voicemail.</string>
+    <string name="onboarding_get_started">Get Started</string>
+    
+    <string name="permission_call_screening_title">Call Screening Permission</string>
+    <string name="permission_call_screening_description">Required to block unwanted calls before they ring</string>
+    <string name="permission_contacts_title">Contacts Access</string>
+    <string name="permission_contacts_description">Optional: Import trusted contacts to your whitelist</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_description">Get notified about blocked calls (optional)</string>
+    
+    <string name="home_protection_active">Protection Active</string>
+    <string name="home_protection_trial">Trial: %d days remaining</string>
+    <string name="home_protection_paused">Protection Paused</string>
+    <string name="home_trial_ended">Your trial ended</string>
+    <string name="home_resume_protection">Resume Protection</string>
+    <string name="home_blocking_enabled">Blocking Enabled</string>
+    <string name="home_calls_blocked_today">calls blocked today</string>
+    <string name="home_calls_allowed_today">calls allowed today</string>
+    
+    <string name="whitelist_title">Whitelist</string>
+    <string name="whitelist_add">Add to Whitelist</string>
+    <string name="whitelist_from_contacts">From Contacts</string>
+    <string name="whitelist_manual_entry">Enter Number</string>
+    <string name="whitelist_empty">Your whitelist is empty</string>
+    <string name="whitelist_empty_hint">Add contacts who can always reach you</string>
+    <string name="whitelist_search">Search whitelist</string>
+    
+    <string name="activity_title">Call Activity</string>
+    <string name="activity_blocked">Blocked</string>
+    <string name="activity_allowed">Allowed</string>
+    <string name="activity_empty">No call activity yet</string>
+    <string name="activity_reason_not_whitelisted">Not in whitelist</string>
+    <string name="activity_reason_whitelisted">In whitelist</string>
+    <string name="activity_reason_unknown_blocked">Unknown number blocked</string>
+    <string name="activity_reason_emergency_bypass">Emergency bypass</string>
+    <string name="activity_reason_starred_contact">Starred contact</string>
+    <string name="activity_reason_recent_outgoing">Recent outgoing call</string>
+    
+    <string name="settings_title">Settings</string>
+    <string name="settings_rules">Blocking Rules</string>
+    <string name="settings_allow_starred">Allow Starred Contacts</string>
+    <string name="settings_allow_starred_desc">Contacts marked as favorites bypass whitelist</string>
+    <string name="settings_block_unknown">Block Unknown Numbers</string>
+    <string name="settings_block_unknown_desc">Block calls with hidden caller ID</string>
+    <string name="settings_emergency_bypass">Emergency Bypass</string>
+    <string name="settings_emergency_bypass_desc">Allow if same number calls twice in 3 minutes</string>
+    <string name="settings_allow_recent_outgoing">Allow Recent Outgoing</string>
+    <string name="settings_allow_recent_outgoing_desc">Numbers you called in last 7 days can call back</string>
+    <string name="settings_schedule">Schedule</string>
+    <string name="settings_schedule_always">Always On</string>
+    <string name="settings_schedule_custom">Custom Hours</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_subscription">Subscription</string>
+    <string name="settings_sign_out">Sign Out</string>
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_test_mode">Test Mode</string>
+    <string name="settings_test_mode_desc">Check if a number would be blocked</string>
+    
+    <string name="paywall_title">Resume Protection</string>
+    <string name="paywall_subtitle">Never be interrupted by spam again</string>
+    <string name="paywall_feature_1">Block all unwanted calls</string>
+    <string name="paywall_feature_2">Whitelist-only protection</string>
+    <string name="paywall_feature_3">Cloud sync across devices</string>
+    <string name="paywall_monthly">Monthly</string>
+    <string name="paywall_yearly">Yearly</string>
+    <string name="paywall_save">SAVE 44%</string>
+    <string name="paywall_per_month">/month</string>
+    <string name="paywall_per_year">/year</string>
+    <string name="paywall_subscribe">Subscribe</string>
+    <string name="paywall_restore">Restore Purchases</string>
+    <string name="paywall_terms">Terms &amp; Privacy</string>
+    
+    <string name="nav_home">Home</string>
+    <string name="nav_whitelist">Whitelist</string>
+    <string name="nav_activity">Activity</string>
+    <string name="nav_settings">Settings</string>
+    
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_done">Done</string>
+    <string name="common_next">Next</string>
+    <string name="common_skip">Skip</string>
+    <string name="common_error">Something went wrong</string>
+    <string name="common_retry">Retry</string>
+</resources>
