@@ -1,4 +1,4 @@
-# Whitelist Calls - Native Android Project
+# CallMeNot - Native Android Project
 
 ## Project Overview
 
@@ -9,15 +9,15 @@ This is a **native Android application** written in Kotlin with Jetpack Compose.
 ## Project Structure
 
 ```
-WhitelistCalls/
+CallMeNot/
 ├── app/
 │   ├── build.gradle.kts          # App module build config
 │   ├── proguard-rules.pro        # ProGuard rules
 │   └── src/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
-│       │   ├── java/com/whitelistcalls/app/
-│       │   │   ├── WhitelistCallsApp.kt
+│       │   ├── java/com/callmenot/app/
+│       │   │   ├── CallMeNotApp.kt
 │       │   │   ├── MainActivity.kt
 │       │   │   ├── di/           # Hilt DI modules
 │       │   │   ├── data/         # Database, repositories
@@ -65,7 +65,7 @@ WhitelistCalls/
 
 ### Option 2: Local Android Studio
 
-1. Download the `WhitelistCalls` folder
+1. Download the `CallMeNot` folder
 2. Open in Android Studio
 3. Add `google-services.json` from Firebase Console
 4. Sync Gradle
