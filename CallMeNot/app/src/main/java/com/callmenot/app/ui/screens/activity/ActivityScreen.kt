@@ -1,5 +1,6 @@
 package com.callmenot.app.ui.screens.activity
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,15 +17,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CallReceived
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -39,9 +49,16 @@ import java.util.Locale
 
 @Composable
 fun ActivityScreen(
+    initialFilter: CallAction? = null,
     viewModel: ActivityViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    
+    androidx.compose.runtime.LaunchedEffect(initialFilter) {
+        if (initialFilter != null) {
+            viewModel.setFilter(initialFilter)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -85,7 +102,12 @@ fun ActivityScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(uiState.events, key = { it.id }) { event ->
-                    CallEventCard(event = event)
+                    CallEventCard(
+                        event = event,
+                        onAddToWhitelist = { viewModel.addToWhitelist(event) },
+                        onRemoveFromWhitelist = { viewModel.removeFromWhitelist(event) },
+                        onAllowTemporarily = { hours -> viewModel.allowTemporarily(event, hours) }
+                    )
                 }
             }
         }
@@ -115,13 +137,23 @@ private fun EmptyActivityMessage() {
 }
 
 @Composable
-private fun CallEventCard(event: CallEvent) {
+private fun CallEventCard(
+    event: CallEvent,
+    onAddToWhitelist: () -> Unit,
+    onRemoveFromWhitelist: () -> Unit,
+    onAllowTemporarily: (Int) -> Unit
+) {
     val isBlocked = event.action == CallAction.BLOCKED
     val icon = if (isBlocked) Icons.Default.Block else Icons.Default.CheckCircle
     val iconColor = if (isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+    
+    var showMenu by remember { mutableStateOf(false) }
+    var showTemporaryDialog by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showMenu = true },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
@@ -163,13 +195,104 @@ private fun CallEventCard(event: CallEvent) {
                 )
             }
 
-            Text(
-                text = formatTime(event.timestamp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = formatTime(event.timestamp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Actions",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    if (isBlocked) {
+                        DropdownMenuItem(
+                            text = { Text("Add to Whitelist") },
+                            onClick = {
+                                onAddToWhitelist()
+                                showMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Allow Temporarily...") },
+                            onClick = {
+                                showTemporaryDialog = true
+                                showMenu = false
+                            }
+                        )
+                    } else {
+                        if (event.reason == CallReason.WHITELISTED) {
+                            DropdownMenuItem(
+                                text = { Text("Remove from Whitelist") },
+                                onClick = {
+                                    onRemoveFromWhitelist()
+                                    showMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
+    
+    if (showTemporaryDialog) {
+        TemporaryAllowDialog(
+            phoneNumber = event.displayName ?: event.phoneNumber ?: "Unknown",
+            onDismiss = { showTemporaryDialog = false },
+            onSelect = { hours ->
+                onAllowTemporarily(hours)
+                showTemporaryDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun TemporaryAllowDialog(
+    phoneNumber: String,
+    onDismiss: () -> Unit,
+    onSelect: (Int) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Allow Temporarily") },
+        text = { 
+            Column {
+                Text("Allow calls from $phoneNumber for:")
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                listOf(
+                    1 to "1 hour",
+                    4 to "4 hours",
+                    24 to "24 hours",
+                    168 to "1 week"
+                ).forEach { (hours, label) ->
+                    TextButton(
+                        onClick = { onSelect(hours) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(label)
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 private fun formatReason(reason: CallReason): String {

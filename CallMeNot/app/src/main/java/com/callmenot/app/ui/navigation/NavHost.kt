@@ -23,10 +23,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.callmenot.app.data.local.entity.CallAction
 import com.callmenot.app.ui.screens.activity.ActivityScreen
 import com.callmenot.app.ui.screens.home.HomeScreen
 import com.callmenot.app.ui.screens.onboarding.OnboardingScreen
@@ -40,6 +43,7 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Whitelist : Screen("whitelist")
     object Activity : Screen("activity")
+    object ActivityFiltered : Screen("activity/{filter}")
     object Settings : Screen("settings")
     object Paywall : Screen("paywall")
 }
@@ -69,14 +73,18 @@ fun CallMeNotNavHost() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     
-    val showBottomBar = currentDestination?.route in bottomNavItems.map { it.route }
+    val showBottomBar = currentDestination?.route in bottomNavItems.map { it.route } ||
+                        currentDestination?.route?.startsWith("activity") == true
     
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
                     bottomNavItems.forEach { item ->
-                        val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                        val selected = currentDestination?.hierarchy?.any { 
+                            it.route == item.route || 
+                            (item.route == Screen.Activity.route && it.route?.startsWith("activity") == true)
+                        } == true
                         NavigationBarItem(
                             icon = {
                                 Icon(
@@ -120,6 +128,15 @@ fun CallMeNotNavHost() {
                 HomeScreen(
                     onNavigateToPaywall = {
                         navController.navigate(Screen.Paywall.route)
+                    },
+                    onNavigateToBlockedCalls = {
+                        navController.navigate("activity/BLOCKED")
+                    },
+                    onNavigateToAllowedCalls = {
+                        navController.navigate("activity/ALLOWED")
+                    },
+                    onNavigateToWhitelist = {
+                        navController.navigate(Screen.Whitelist.route)
                     }
                 )
             }
@@ -130,6 +147,19 @@ fun CallMeNotNavHost() {
             
             composable(Screen.Activity.route) {
                 ActivityScreen()
+            }
+            
+            composable(
+                route = "activity/{filter}",
+                arguments = listOf(navArgument("filter") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val filterArg = backStackEntry.arguments?.getString("filter")
+                val filter = when (filterArg) {
+                    "BLOCKED" -> CallAction.BLOCKED
+                    "ALLOWED" -> CallAction.ALLOWED
+                    else -> null
+                }
+                ActivityScreen(initialFilter = filter)
             }
             
             composable(Screen.Settings.route) {

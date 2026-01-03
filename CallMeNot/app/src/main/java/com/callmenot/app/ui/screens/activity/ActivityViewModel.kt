@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.callmenot.app.data.local.entity.CallAction
 import com.callmenot.app.data.local.entity.CallEvent
 import com.callmenot.app.data.repository.CallEventRepository
+import com.callmenot.app.data.repository.WhitelistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ data class ActivityUiState(
 
 @HiltViewModel
 class ActivityViewModel @Inject constructor(
-    private val callEventRepository: CallEventRepository
+    private val callEventRepository: CallEventRepository,
+    private val whitelistRepository: WhitelistRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ActivityUiState())
@@ -44,5 +46,36 @@ class ActivityViewModel @Inject constructor(
     fun setFilter(filter: CallAction?) {
         _uiState.value = _uiState.value.copy(filter = filter)
         observeEvents()
+    }
+    
+    fun addToWhitelist(event: CallEvent) {
+        viewModelScope.launch {
+            val number = event.normalizedNumber ?: event.phoneNumber ?: return@launch
+            whitelistRepository.addNumber(
+                phoneNumber = number,
+                displayName = event.displayName,
+                notes = "Added from call activity"
+            )
+        }
+    }
+    
+    fun removeFromWhitelist(event: CallEvent) {
+        viewModelScope.launch {
+            val number = event.normalizedNumber ?: event.phoneNumber ?: return@launch
+            whitelistRepository.removeByNumber(number)
+        }
+    }
+    
+    fun allowTemporarily(event: CallEvent, hours: Int) {
+        viewModelScope.launch {
+            val number = event.normalizedNumber ?: event.phoneNumber ?: return@launch
+            val expiresAt = System.currentTimeMillis() + (hours * 60 * 60 * 1000L)
+            whitelistRepository.addNumber(
+                phoneNumber = number,
+                displayName = event.displayName,
+                notes = "Temporary access",
+                expiresAt = expiresAt
+            )
+        }
     }
 }

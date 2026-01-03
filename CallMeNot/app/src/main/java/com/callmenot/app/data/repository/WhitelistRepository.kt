@@ -25,7 +25,13 @@ class WhitelistRepository @Inject constructor(
     
     suspend fun isNumberWhitelisted(phoneNumber: String): Boolean {
         val normalized = phoneNumberUtil.normalize(phoneNumber)
-        return whitelistDao.isNumberWhitelisted(normalized)
+        val entry = whitelistDao.getEntryByNormalizedNumber(normalized)
+        if (entry == null) return false
+        if (entry.isExpired()) {
+            whitelistDao.deleteById(entry.id)
+            return false
+        }
+        return true
     }
     
     suspend fun getAllNormalizedNumbers(): Set<String> = whitelistDao.getAllNormalizedNumbers().toSet()
@@ -60,6 +66,30 @@ class WhitelistRepository @Inject constructor(
     
     suspend fun deleteEntryById(id: String) {
         whitelistDao.deleteById(id)
+    }
+    
+    suspend fun addNumber(
+        phoneNumber: String,
+        displayName: String? = null,
+        notes: String? = null,
+        expiresAt: Long? = null
+    ): WhitelistEntry {
+        val normalized = phoneNumberUtil.normalize(phoneNumber)
+        val entry = WhitelistEntry(
+            id = UUID.randomUUID().toString(),
+            displayName = displayName ?: phoneNumber,
+            phoneNumber = phoneNumber,
+            normalizedNumber = normalized,
+            notes = notes,
+            expiresAt = expiresAt
+        )
+        whitelistDao.insert(entry)
+        return entry
+    }
+    
+    suspend fun removeByNumber(phoneNumber: String) {
+        val normalized = phoneNumberUtil.normalize(phoneNumber)
+        whitelistDao.deleteByNormalizedNumber(normalized)
     }
     
     suspend fun syncToCloud(userId: String) {

@@ -51,6 +51,9 @@ interface WhitelistDao {
     @Query("DELETE FROM whitelist_entries WHERE id = :id")
     suspend fun deleteById(id: String)
     
+    @Query("DELETE FROM whitelist_entries WHERE normalizedNumber = :normalizedNumber")
+    suspend fun deleteByNormalizedNumber(normalizedNumber: String)
+    
     @Query("DELETE FROM whitelist_entries")
     suspend fun deleteAll()
     

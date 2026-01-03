@@ -1,5 +1,6 @@
 package com.callmenot.app.ui.screens.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,9 @@ import com.callmenot.app.service.SubscriptionStatus
 @Composable
 fun HomeScreen(
     onNavigateToPaywall: () -> Unit,
+    onNavigateToBlockedCalls: () -> Unit = {},
+    onNavigateToAllowedCalls: () -> Unit = {},
+    onNavigateToWhitelist: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,7 +75,8 @@ fun HomeScreen(
                 icon = Icons.Default.Block,
                 value = uiState.blockedToday.toString(),
                 label = "Blocked Today",
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                onClick = onNavigateToBlockedCalls
             )
             
             StatCard(
@@ -79,7 +84,8 @@ fun HomeScreen(
                 icon = Icons.Default.CheckCircle,
                 value = uiState.allowedToday.toString(),
                 label = "Allowed Today",
-                color = MaterialTheme.colorScheme.tertiary
+                color = MaterialTheme.colorScheme.tertiary,
+                onClick = onNavigateToAllowedCalls
             )
         }
         
@@ -90,7 +96,8 @@ fun HomeScreen(
             icon = Icons.Default.People,
             value = uiState.whitelistCount.toString(),
             label = "Contacts in Whitelist",
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            onClick = onNavigateToWhitelist
         )
     }
 }
@@ -211,10 +218,11 @@ private fun StatCard(
     icon: ImageVector,
     value: String,
     label: String,
-    color: androidx.compose.ui.graphics.Color
+    color: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )

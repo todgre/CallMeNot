@@ -16,7 +16,13 @@ data class WhitelistEntry(
     val normalizedNumber: String,
     val contactId: String? = null,
     val isEmergencyBypass: Boolean = false,
+    val notes: String? = null,
+    val expiresAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncedAt: Long? = null
-)
+) {
+    fun isExpired(): Boolean {
+        return expiresAt != null && System.currentTimeMillis() > expiresAt
+    }
+}
