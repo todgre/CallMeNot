@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Whitelist Calls</string>
+    <string name="app_name">CallMeNot</string>
     
     <string name="onboarding_welcome_title">Stop Spam Calls Forever</string>
     <string name="onboarding_welcome_subtitle">Only people you choose can interrupt you</string>

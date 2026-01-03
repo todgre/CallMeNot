@@ -73,8 +73,8 @@ class EvaluateCallUseCase @Inject constructor(
         
         if (normalizedNumber == null) {
             return CallScreeningDecision(
-                shouldAllow = true,
-                reason = CallReason.SCREENING_DISABLED
+                shouldAllow = false,
+                reason = CallReason.NOT_WHITELISTED
             )
         }
         
