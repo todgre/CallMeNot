@@ -1,0 +1,126 @@
+You are generating a NATIVE ANDROID APP CODEBASE (Android Studio project) in Kotlin + Jetpack Compose. Replit will NOT run it; that’s okay. Your job is to output a complete repository that I can open in Android Studio and build locally.
+
+PROJECT NAME:
+CallWhitelist (working title)
+
+GOAL (V1 ONLY — includes all features; no V2):
+Create an Android call screening app that enforces a whitelist:
+- If an incoming call’s number is NOT on the whitelist, it is sent directly to voicemail (or rejected) and is silenced so the user is not interrupted.
+- If the number IS whitelisted, the call rings normally.
+- Provide an easy UI to manage whitelist, settings, and view blocked/allowed call events.
+- Provide login tied to phone number so the user can restore whitelist/settings when migrating to a new phone.
+- Monetization: 7-day free trial, then subscription required (no free-forever). Price options: $2.99/month or $19.99/year.
+- App disables core blocking unless user is in trial OR subscription is active. If not active, show a paywall and do not block calls.
+
+IMPORTANT CONSTRAINTS / HONESTY:
+- Implement using Android’s call screening APIs. If certain behavior (like fully preventing any incoming call UI on every device/OS) is not guaranteed, document that clearly and provide best-effort behavior supported by Android APIs.
+- Do not hand-wave: implement real services, permissions, and role requests.
+
+TECH STACK:
+- Kotlin
+- Jetpack Compose UI
+- MVVM + Repository pattern
+- Hilt for DI
+- Room for local storage (whitelist + call events)
+- DataStore for settings
+- Firebase Auth (Phone number auth) + Firestore (sync whitelist + settings)
+- Google Play Billing Library v6+ for subscriptions + trial
+- Coroutines + Flow
+- WorkManager for periodic sync/cleanup (optional but preferred)
+- Target SDK: latest stable (use a reasonable current target; set compileSdk/targetSdk consistently)
+- Min SDK: choose a sensible minimum that supports CallScreeningService (explain why)
+
+CORE ANDROID REQUIREMENTS:
+1) Call Screening:
+- Implement CallScreeningService that screens incoming calls.
+- For non-whitelisted numbers: disallow the call and attempt to send to voicemail / reject and suppress notification/log where possible via CallResponse flags.
+- For whitelisted numbers: allow.
+- Handle unknown/hidden caller IDs with a user setting:
+  - Setting: "Block Private/Unknown Numbers" default ON.
+2) Role / Permissions:
+- Request the appropriate role (call screening role or default phone role if needed). Implement user flow to grant required role(s).
+- Provide an onboarding checklist screen that shows whether all permissions/roles are granted and guides user to enable them.
+3) Subscription Enforcement:
+- On app start and periodically, verify subscription/trial status using Play Billing.
+- If expired and no active subscription, disable blocking (service should behave as allow-all) and show paywall in UI.
+4) Local Data:
+- Whitelist entries: display name, phone number (E.164 normalization), createdAt, updatedAt.
+- Call events log: timestamp, incoming number, result (BLOCKED/ALLOWED), reason, matched whitelist entry, device state.
+5) Cloud Sync / Migration:
+- User logs in via phone number (Firebase Phone Auth).
+- Sync whitelist + settings to Firestore under user UID.
+- On new phone login, restore whitelist/settings automatically.
+- Conflict strategy: latest updatedAt wins per entry; document and implement.
+6) UX:
+- Minimal, clean, fast. Gen Z / millennial friendly. No clutter.
+- Main tabs (bottom nav):
+  - Home (status + quick toggles + onboarding checklist)
+  - Whitelist (add/edit/import contacts)
+  - Activity (blocked/allowed log)
+  - Settings (block unknown, schedule, subscription, help)
+- Quick toggle:
+  - Master switch "Blocking Enabled" (requires active trial/subscription to actually block; otherwise shows paywall)
+- Add whitelist:
+  - Manual number entry
+  - Pick from contacts (Contacts permission + picker)
+  - Normalize & validate numbers
+7) Schedule Feature (still V1):
+- Optional schedules: allow user to enable blocking only during certain hours or always-on.
+- Simple schedule UI (e.g., “Always on” or “Custom hours” with start/end times).
+- Implement schedule logic in screening decision.
+8) Safety / Reliability:
+- Handle dual SIM.
+- Handle formatted numbers, country codes.
+- Caching: keep local whitelist authoritative for screening (fast). Cloud sync is background.
+- Provide "Test Mode" screen: user can input a number and see whether it would be blocked and why (no actual call needed).
+
+DELIVERABLES (VERY IMPORTANT):
+A) Output a complete Android Studio project repository with:
+- settings.gradle(.kts), build.gradle(.kts) root + app module
+- gradle wrapper files
+- AndroidManifest with required service declarations + permissions
+- Kotlin source files with package structure
+- Compose UI screens
+- Billing implementation
+- Firebase config placeholder + instructions to add google-services.json
+- README.md with exact local setup steps:
+  - Android Studio version
+  - SDK install steps
+  - How to configure Firebase (Auth + Firestore)
+  - How to configure Play Billing products (monthly/yearly + trial)
+  - How to test CallScreeningService on a physical device
+  - Known limitations by Android version/OEM
+B) Use realistic, compile-able code with correct imports and dependencies.
+C) Include basic unit tests for decision logic (whitelist + schedule + unknown/private behavior) if feasible.
+
+APP LOGIC (SCREENING DECISION):
+Inputs:
+- incomingNumber (nullable)
+- isPrivate/unknown
+- whitelist set
+- masterEnabled toggle
+- schedule enabled and current time
+- subscriptionActive OR trialActive
+Decision:
+- If NOT (trialActive OR subscriptionActive): allow (do not block)
+- Else if masterEnabled is OFF: allow
+- Else if schedule says OFF right now: allow
+- Else if unknown/private AND blockUnknown setting ON: block
+- Else if number in whitelist: allow
+- Else: block
+
+MONETIZATION DETAILS:
+- Trial: 7 days free
+- Products: monthly $2.99, yearly $19.99
+- Paywall screen explaining value proposition:
+  - “No more spam interruptions”
+  - “Whitelist = only people you want”
+  - “Quiet by default”
+- If user cancels and expires: stop blocking, show subscription required banner.
+
+OUTPUT FORMAT:
+- Create the repository structure and files directly in the Replit workspace.
+- Provide a final summary listing major files created and where to edit config values.
+- Do NOT claim you tested it in Replit. Be explicit that it must be built locally.
+
+START NOW by generating the project skeleton and all necessary files.

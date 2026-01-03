@@ -1,0 +1,124 @@
+You are building a REAL Android app (not Expo, not React Native). Use Kotlin + Jetpack Compose, Android Studio project structure, and Android system APIs.
+
+APP NAME (working): “Whitelist Calls” (you can suggest a better name later)
+
+GOAL:
+A “Whitelist Only” call experience: if an incoming call is NOT on the whitelist, it should be silently screened and sent to voicemail (no ringing, no full-screen incoming call UI interruption if possible), and the user should not be bothered. If the number IS on the whitelist, calls behave normally.
+
+IMPORTANT CONSTRAINTS:
+- This must use Android’s CallScreeningService and role/permissions correctly.
+- The app must request and guide user to grant the necessary roles (Call Screening app role; and if needed, Default Phone/Dialer role depending on OS/version behavior).
+- Build this as a single version (v1) with ALL features included. No “v2”.
+
+TARGET:
+Android 10+ (prefer 10–14+), with best-effort behavior across OEMs. Add notes where OEM limitations exist.
+
+KEY FEATURES (v1 = everything):
+1) Call Screening (Core)
+   - Implement CallScreeningService.
+   - On incoming call, check:
+     a) If app is enabled AND subscription is active (trial or paid),
+     b) If number is in whitelist OR passes bypass rules,
+     then allow call.
+     Else:
+       - Disallow call, reject call, skip call log optional, and send to voicemail if supported.
+       - Silence notification and prevent UI interruption as much as Android allows.
+   - Provide detailed handling for:
+     - Unknown/Private/Blocked caller ID
+     - International formats, normalization (E.164-ish)
+     - Spam-labeled calls (optional toggle if available)
+     - Calls from contacts vs non-contacts (toggle)
+     - Repeated calls within X minutes (optional “Emergency bypass” toggle)
+     - Allow short-code numbers (toggle)
+     - Allow starred contacts (toggle)
+   - Keep a “Screened Calls” log inside the app (local list + metadata).
+
+2) Whitelist Management (UI/UX)
+   - Jetpack Compose UI.
+   - Add/remove whitelist entries:
+     - from Contacts picker
+     - manual entry
+     - recent calls list (inside app)
+   - Whitelist entry types:
+     - Exact phone number
+     - Contact-based (all numbers for contact)
+   - Search, sort, and favorites.
+   - Clear explanation: “Only these people can interrupt you with calls.”
+
+3) “Enable & Setup” Guided Onboarding
+   - First-run wizard:
+     - Explain what the app does
+     - Ask for permissions step-by-step
+     - Request Role: Call Screening (and Default Phone role ONLY if needed; minimize invasiveness)
+     - Request Contacts permission (optional but recommended)
+     - Battery optimization exemption prompt (guidance screen)
+   - Show live checklist: “Call screening enabled ✅ / Roles granted ✅ / Subscription active ✅”
+
+4) Account + Migration (Login associated with phone number)
+   - Use Firebase Auth with Phone Number OTP login.
+   - User account stores:
+     - Cloud whitelist (Firestore)
+     - Settings toggles
+     - Subscription status reference (from Play Billing)
+   - On new phone login, it restores whitelist + settings automatically.
+   - Local caching so the whitelist still works offline (Room DB).
+   - Sync strategy: Firestore as source of truth; local Room cache; simple conflict handling (last-write-wins is ok).
+
+5) Subscription + Trial + Paywall Enforcement
+   - Monetization:
+     - Free trial (e.g., 7 days; pick 7 unless you recommend 3 or 14 with reason)
+     - After trial, app DISABLES call screening unless user subscribes.
+     - Pricing: $2.99/month or $19.99/year (USD).
+   - Use Google Play Billing Library (latest stable).
+   - Build:
+     - Purchase screen
+     - Restore purchases
+     - Subscription status screen
+     - Hard enforcement: if not active, call screening returns “allow” (do not block) OR fully disables service with clear warning. (Choose the safer approach and explain why.)
+   - IMPORTANT: no “free forever”.
+
+6) Settings Screen (toggles)
+   - Master toggle: “Whitelist Mode On/Off”
+   - Options:
+     - Allow contacts automatically (if enabled, contacts bypass whitelist)
+     - Allow starred contacts automatically
+     - Emergency bypass: allow if same number calls twice within 3 minutes
+     - Block unknown/private numbers (default ON if not whitelisted)
+     - Allow short codes
+     - Show notifications for screened calls (default OFF)
+     - Add screened calls to system call log (default OFF)
+   - Diagnostics: show current roles, permissions, battery optimization status.
+
+7) Privacy & Security
+   - Minimal data collection.
+   - Store only what’s necessary.
+   - Do not upload call audio (none).
+   - Firestore rules outline (basic).
+
+DELIVERABLES YOU MUST OUTPUT:
+A) Architecture + call flow explanation (what happens on an incoming call).
+B) File/folder structure for Android Studio project.
+C) The key Kotlin files:
+   - CallScreeningService implementation
+   - Role/permission helpers
+   - Room entities/DAO for whitelist + screened calls
+   - Firestore sync layer
+   - Billing manager
+   - Compose screens: Onboarding, Home (status), Whitelist, Screened Calls log, Settings, Paywall/Subscribe
+D) AndroidManifest.xml entries required.
+E) Gradle dependencies list (versions you choose).
+F) Notes about Android limitations and OEM differences (brief but real).
+G) Step-by-step instructions to run in Android Studio and test.
+
+CODING RULES:
+- Kotlin, Jetpack Compose, MVVM (ViewModel + StateFlow).
+- Use Room for local DB.
+- Use Firebase Auth + Firestore.
+- Use Google Play Billing.
+- Keep code clean and production-grade; include comments for critical OS behaviors.
+- Do not invent impossible behaviors: if something can’t fully prevent incoming-call UI on certain Android versions, explain the limitation and do best-effort.
+
+START NOW:
+1) First output the architecture + role/permission strategy.
+2) Then output the full project scaffold and code for each file.
+3) Ensure everything compiles in Android Studio (best effort).

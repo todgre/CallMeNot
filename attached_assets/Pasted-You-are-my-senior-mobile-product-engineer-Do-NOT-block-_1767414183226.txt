@@ -1,0 +1,50 @@
+You are my senior mobile/product engineer. Do NOT block or refuse immediately. Instead, do a feasibility-driven design and then implement the best shippable v1 within Replit constraints.
+
+GOAL (Product):
+Build a “Whitelist Calls Only” app for Android-focused users who hate spam/unknown calls. If a caller is NOT on the user’s whitelist, the user should experience ZERO interruption: no audible ring, no vibration, no full-screen takeover if possible, and no notifications. The caller should still hear normal ringing and then be routed to voicemail (or equivalent). If the caller IS whitelisted, calls should ring normally.
+
+IMPORTANT CONSTRAINTS:
+- I want Replit to build everything. I do not want to install Android Studio locally.
+- You previously stated Expo/React Native cannot do deep call interception via CallScreeningService and Replit doesn’t support native Android tooling. Therefore: propose a solution that can be built and shipped with what IS possible in Replit, or by using cloud build/CI (e.g., EAS Build, GitHub Actions) without local installs, if needed.
+- You must choose ONE v1 that includes all features. No “v2”.
+
+TASK:
+1) List 3 possible architectures that could achieve the goal as closely as possible WITHOUT requiring me to develop locally:
+   A) OS-level (CallScreeningService / default dialer) — explain why it’s hard on Replit, and whether any cloud-build approach could still work.
+   B) “DND + allowlist automation” approach — what it can and cannot guarantee (especially whether it truly prevents the incoming call UI).
+   C) Network/VoIP routing approach — e.g., user uses a provisioned VoIP number (or call forwarding) so our backend decides whitelist vs voicemail before the phone UI is involved. Explain the UX tradeoffs (new number, forwarding steps, etc.).
+
+2) Pick the BEST v1 option that is actually buildable end-to-end given Replit stacks (FULLSTACK_JS/EXPO/etc.) and that most closely matches the “zero interruption” experience. If the perfect experience is impossible, be explicit about what will be imperfect and how we message it in the app/store listing.
+
+3) Implement the chosen v1 with these REQUIRED FEATURES:
+   - Account/login with phone number (OTP) so user can migrate to a new phone easily.
+   - Whitelist management:
+       • Add from contacts
+       • Add manual number
+       • Import/export whitelist (cloud-backed)
+       • Optional “temporary allow” for X minutes
+   - Core behavior:
+       • Whitelisted calls = normal ring
+       • Non-whitelisted = no interruption to user; route caller to voicemail/equivalent (based on chosen architecture)
+   - Settings:
+       • Toggle on/off
+       • Schedule (work hours, sleep hours)
+       • Emergency bypass (e.g., allow repeated calls within 3 minutes)
+   - Subscription:
+       • 7-day free trial then app disables unless subscribed
+       • $2.99/month or $19.99/year
+       • Show paywall after trial
+   - Privacy & compliance:
+       • Minimal data collection
+       • Clear explanation of permissions and limitations
+   - Onboarding:
+       • Step-by-step setup (including any call forwarding / DND configuration steps required by chosen architecture)
+       • A “Test mode” so user can verify it works
+
+4) Output:
+   - Start with the selected architecture + why.
+   - Then create the Replit project in the best supported stack.
+   - Provide all code, DB schema, and setup instructions that I can run inside Replit.
+   - If any piece requires external cloud services (OTP provider, payment, VoIP routing), use the simplest mainstream choices and include exact configuration steps.
+
+Non-negotiable: Do not answer with “blocked.” Do the architecture choice and build the most workable v1 that matches the goal.

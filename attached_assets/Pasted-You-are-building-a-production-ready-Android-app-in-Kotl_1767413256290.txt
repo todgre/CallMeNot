@@ -1,0 +1,120 @@
+You are building a production-ready Android app in Kotlin using Jetpack Compose.
+App name: “Whitelist Calls”
+
+CORE PRODUCT GOAL
+This app enforces whitelist-only call protection. If an incoming call is not allowed by user rules, it must not ring, must not hijack the screen, and should be silently rejected (so the caller can reach voicemail when supported). Allowed callers behave normally.
+
+There is NO free-forever tier.
+The app runs fully during a 7-day free trial.
+After trial expiration, call protection is PAUSED until the user subscribes.
+
+PLATFORM & TECH
+- Android 10+ (API 29+)
+- Kotlin
+- Jetpack Compose UI
+- MVVM architecture
+- Room database for local persistence
+- Firebase Auth + Firestore for login + cloud sync
+- Google Play Billing (subscriptions only)
+
+HARD REQUIREMENTS
+
+1) CALL CONTROL
+- Implement Android CallScreeningService.
+- For each incoming call:
+  - If subscription inactive → DO NOT screen calls (pass through normally).
+  - If subscription active:
+      - If caller is allowed → allow call.
+      - If caller is NOT allowed → silence and reject when supported.
+- Prevent full-screen incoming call UI for screened calls when supported by OS.
+- Log all screened and allowed calls internally.
+
+2) RULES ENGINE
+Rules must support:
+- Allow calls from:
+  - Favorites
+  - Custom allowlist (manual numbers)
+  - Recent outgoing calls (last 7 days)
+- Emergency override:
+  - If the same number calls twice within a configurable window (default 3 minutes), allow the second call.
+Rules must be unit-testable.
+
+3) WHITELIST MANAGEMENT UI
+- Add from contacts picker
+- Add manual phone number
+- Remove/edit entries
+- Mark numbers as “Emergency Bypass”
+
+4) TRIAL + SUBSCRIPTION ENFORCEMENT
+- 7-day free trial starts on first launch.
+- During trial: full functionality.
+- After trial expiration:
+  - Disable call screening entirely
+  - Show clear banner: “Protection paused — trial ended”
+  - Provide “Resume Protection” button leading to paywall
+- Subscription options:
+  - $2.99 / month
+  - $19.99 / year
+- Annual plan visually emphasized.
+- No ads, no free tier.
+
+5) LOGIN & DEVICE MIGRATION
+- Authentication options:
+  - Phone number OTP OR
+  - Sign in with Google
+- Sync to cloud:
+  - Whitelist entries
+  - Rules/settings
+  - Subscription status
+- On new device:
+  - Login restores all settings automatically.
+
+6) UI SCREENS (Compose)
+- Onboarding:
+  - Explain whitelist-only behavior
+  - Explain required role/permissions
+  - Explain trial + pricing clearly
+- Main dashboard:
+  - Protection status (Active / Trial / Paused)
+  - Quick toggle (enabled only if subscribed)
+- Screened Calls Log:
+  - Number/name
+  - Timestamp
+  - Action taken
+  - Rule triggered
+- Settings:
+  - Rule toggles
+  - Emergency repeat-call window
+  - Account status
+  - Subscription management
+
+7) PERMISSIONS & ROLES
+- Request only what is required:
+  - Call screening role
+  - Contacts access (optional, for importing)
+  - Notifications
+- Permissions must be requested contextually with clear explanations.
+
+8) NON-FUNCTIONAL REQUIREMENTS
+- Must compile and run in Android Studio.
+- No placeholder logic.
+- Clear inline comments.
+- Defensive handling for OEM differences (Samsung/Pixel/etc).
+- Graceful degradation if certain behaviors aren’t supported on a device.
+
+9) TESTING
+- Unit tests for rules engine.
+- Instrumentation tests for subscription gating logic.
+- Mocked call screening scenarios for allowed vs blocked callers.
+
+DELIVERABLES
+- Full Android Studio project
+- Complete Kotlin source code
+- README including:
+  - Setup instructions
+  - Required permissions & roles
+  - How to test call screening on real devices
+  - Known Android/OEM limitations
+  - Play Store compliance notes
+
+If any requested behavior is not possible on certain Android versions or without being the default dialer, document it clearly and implement the closest compliant alternative.
