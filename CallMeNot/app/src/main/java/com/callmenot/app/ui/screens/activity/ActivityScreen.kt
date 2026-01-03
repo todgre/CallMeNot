@@ -1,5 +1,8 @@
 package com.callmenot.app.ui.screens.activity
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.ContactsContract
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -143,9 +148,11 @@ private fun CallEventCard(
     onRemoveFromWhitelist: () -> Unit,
     onAllowTemporarily: (Int) -> Unit
 ) {
+    val context = LocalContext.current
     val isBlocked = event.action == CallAction.BLOCKED
     val icon = if (isBlocked) Icons.Default.Block else Icons.Default.CheckCircle
     val iconColor = if (isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+    val phoneNumber = event.phoneNumber
     
     var showMenu by remember { mutableStateOf(false) }
     var showTemporaryDialog by remember { mutableStateOf(false) }
@@ -214,6 +221,45 @@ private fun CallEventCard(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
+                    if (phoneNumber != null) {
+                        DropdownMenuItem(
+                            text = { Text("Call") },
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = Uri.parse("tel:$phoneNumber")
+                                }
+                                context.startActivity(intent)
+                                showMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Send SMS") },
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("smsto:$phoneNumber")
+                                }
+                                context.startActivity(intent)
+                                showMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Add to Contacts") },
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_INSERT).apply {
+                                    type = ContactsContract.Contacts.CONTENT_TYPE
+                                    putExtra(ContactsContract.Intents.Insert.PHONE, phoneNumber)
+                                    event.displayName?.let { name ->
+                                        putExtra(ContactsContract.Intents.Insert.NAME, name)
+                                    }
+                                }
+                                context.startActivity(intent)
+                                showMenu = false
+                            }
+                        )
+                        
+                        HorizontalDivider()
+                    }
+                    
                     if (isBlocked) {
                         DropdownMenuItem(
                             text = { Text("Add to Whitelist") },
