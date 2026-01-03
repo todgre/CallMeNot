@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WhitelistCalls"
+rootProject.name = "CallMeNot"
 include(":app")

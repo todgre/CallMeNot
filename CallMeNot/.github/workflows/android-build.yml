@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./CallMeNot
     
     steps:
       - name: Checkout repository
@@ -19,20 +22,21 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.2'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Create google-services.json placeholder
         run: |
           echo '{"project_info":{"project_number":"0","project_id":"placeholder"},"client":[{"client_info":{"mobilesdk_app_id":"1:0:android:0","android_client_info":{"package_name":"com.callmenot.app"}},"api_key":[{"current_key":"placeholder"}]}],"configuration_version":"1"}' > app/google-services.json
 
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: callmenot-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: CallMeNot/app/build/outputs/apk/debug/*.apk
