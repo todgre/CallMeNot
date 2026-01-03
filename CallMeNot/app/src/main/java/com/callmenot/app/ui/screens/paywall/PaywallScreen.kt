@@ -26,11 +26,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,122 +52,137 @@ fun PaywallScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
-            }
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.clearError()
         }
+    }
 
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Shield,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Close")
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Resume Protection",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Never be interrupted by spam again",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                FeatureList()
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                if (uiState.isLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        PricingCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Monthly",
+                            price = "$2.99",
+                            period = "/month",
+                            isSelected = uiState.selectedProduct == ProductType.MONTHLY,
+                            isBestValue = false,
+                            onClick = { viewModel.selectProduct(ProductType.MONTHLY) }
+                        )
+
+                        PricingCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Yearly",
+                            price = "$19.99",
+                            period = "/year",
+                            isSelected = uiState.selectedProduct == ProductType.YEARLY,
+                            isBestValue = true,
+                            onClick = { viewModel.selectProduct(ProductType.YEARLY) }
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Resume Protection",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            Button(
+                onClick = { viewModel.purchase(context as Activity) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading && !uiState.isPurchasing
+            ) {
+                if (uiState.isPurchasing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Subscribe Now")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = { viewModel.restorePurchases() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Restore Purchases")
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Never be interrupted by spam again",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Cancel anytime. Subscription renews automatically.",
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            FeatureList()
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    PricingCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Monthly",
-                        price = "$2.99",
-                        period = "/month",
-                        isSelected = uiState.selectedProduct == ProductType.MONTHLY,
-                        isBestValue = false,
-                        onClick = { viewModel.selectProduct(ProductType.MONTHLY) }
-                    )
-
-                    PricingCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Yearly",
-                        price = "$19.99",
-                        period = "/year",
-                        isSelected = uiState.selectedProduct == ProductType.YEARLY,
-                        isBestValue = true,
-                        onClick = { viewModel.selectProduct(ProductType.YEARLY) }
-                    )
-                }
-            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { viewModel.purchase(context as Activity) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isLoading && !uiState.isPurchasing
-        ) {
-            if (uiState.isPurchasing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Text("Subscribe Now")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextButton(
-            onClick = { viewModel.restorePurchases() },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Restore Purchases")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Cancel anytime. Subscription renews automatically.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+        
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }

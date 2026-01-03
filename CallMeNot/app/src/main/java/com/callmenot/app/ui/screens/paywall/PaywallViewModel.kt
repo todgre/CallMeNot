@@ -70,13 +70,15 @@ class PaywallViewModel @Inject constructor(
         }
 
         if (productDetails == null) {
-            _uiState.value = _uiState.value.copy(error = "Product not available")
+            _uiState.value = _uiState.value.copy(
+                error = "Billing not available. The app must be installed from the Play Store to subscribe."
+            )
             return
         }
 
         val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
         if (offerToken == null) {
-            _uiState.value = _uiState.value.copy(error = "Offer not available")
+            _uiState.value = _uiState.value.copy(error = "Subscription offer not available")
             return
         }
 
@@ -87,6 +89,9 @@ class PaywallViewModel @Inject constructor(
 
     fun restorePurchases() {
         billingManager.queryPurchases()
+        _uiState.value = _uiState.value.copy(
+            error = "No previous purchases found. If you have an active subscription, make sure you're signed in with the same Google account."
+        )
     }
 
     fun clearError() {
