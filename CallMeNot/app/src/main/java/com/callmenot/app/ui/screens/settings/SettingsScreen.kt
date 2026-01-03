@@ -1,5 +1,11 @@
 package com.callmenot.app.ui.screens.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -26,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +45,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -163,17 +172,59 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         SettingsSection(title = "Diagnostics") {
+            Text(
+                text = "Tap items below to fix missing permissions",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            
             uiState.permissionStatus?.let { status ->
-                DiagnosticRow("Call Screening Role", status.hasCallScreeningRole)
+                DiagnosticRow(
+                    title = "Call Screening Role",
+                    isEnabled = status.hasCallScreeningRole,
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                )
                 HorizontalDivider()
-                DiagnosticRow("Contacts Permission", status.hasContactsPermission)
+                DiagnosticRow(
+                    title = "Contacts Permission",
+                    isEnabled = status.hasContactsPermission,
+                    onClick = {
+                        openAppSettings(context)
+                    }
+                )
                 HorizontalDivider()
-                DiagnosticRow("Call Log Permission", status.hasCallLogPermission)
+                DiagnosticRow(
+                    title = "Call Log Permission",
+                    isEnabled = status.hasCallLogPermission,
+                    onClick = {
+                        openAppSettings(context)
+                    }
+                )
                 HorizontalDivider()
-                DiagnosticRow("Battery Optimization Exempt", status.isBatteryOptimizationIgnored)
+                DiagnosticRow(
+                    title = "Battery Optimization Exempt",
+                    isEnabled = status.isBatteryOptimizationIgnored,
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                            data = Uri.parse("package:${context.packageName}")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
             }
         }
     }
+}
+
+private fun openAppSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.parse("package:${context.packageName}")
+    }
+    context.startActivity(intent)
 }
 
 @Composable
@@ -235,11 +286,13 @@ private fun SettingsToggle(
 @Composable
 private fun DiagnosticRow(
     title: String,
-    isEnabled: Boolean
+    isEnabled: Boolean,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -254,5 +307,13 @@ private fun DiagnosticRow(
             contentDescription = null,
             tint = if (isEnabled) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
         )
+        
+        if (!isEnabled) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Tap to fix",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
