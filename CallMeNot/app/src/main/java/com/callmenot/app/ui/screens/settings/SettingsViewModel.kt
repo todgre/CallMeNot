@@ -27,6 +27,12 @@ data class ContactItem(
     val isSelected: Boolean = false
 )
 
+data class BlockedContactItem(
+    val id: String,
+    val name: String,
+    val phoneNumber: String
+)
+
 data class SettingsUiState(
     val allowStarredContacts: Boolean = true,
     val allowAllContacts: Boolean = false,
@@ -43,7 +49,10 @@ data class SettingsUiState(
     val permissionStatus: PermissionHelper.PermissionStatus? = null,
     val showContactExclusionDialog: Boolean = false,
     val contacts: List<ContactItem> = emptyList(),
-    val isLoadingContacts: Boolean = false
+    val filteredContacts: List<ContactItem> = emptyList(),
+    val contactSearchQuery: String = "",
+    val isLoadingContacts: Boolean = false,
+    val blockedContacts: List<BlockedContactItem> = emptyList()
 )
 
 @HiltViewModel
@@ -62,6 +71,7 @@ class SettingsViewModel @Inject constructor(
     init {
         loadSettings()
         observeSettings()
+        observeBlockedContacts()
     }
 
     private fun loadSettings() {
@@ -109,6 +119,21 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+    
+    private fun observeBlockedContacts() {
+        viewModelScope.launch {
+            blacklistRepository.entries.collect { entries ->
+                val blockedItems = entries.map { entry ->
+                    BlockedContactItem(
+                        id = entry.id,
+                        name = entry.displayName,
+                        phoneNumber = entry.phoneNumber
+                    )
+                }
+                _uiState.value = _uiState.value.copy(blockedContacts = blockedItems)
+            }
+        }
+    }
 
     fun setAllowStarredContacts(enabled: Boolean) {
         viewModelScope.launch {
@@ -137,6 +162,8 @@ class SettingsViewModel @Inject constructor(
                 
                 _uiState.value = _uiState.value.copy(
                     contacts = contacts,
+                    filteredContacts = contacts,
+                    contactSearchQuery = "",
                     isLoadingContacts = false
                 )
             }
@@ -184,8 +211,34 @@ class SettingsViewModel @Inject constructor(
     fun dismissContactExclusionDialog() {
         _uiState.value = _uiState.value.copy(
             showContactExclusionDialog = false,
-            contacts = emptyList()
+            contacts = emptyList(),
+            filteredContacts = emptyList(),
+            contactSearchQuery = ""
         )
+    }
+    
+    fun updateContactSearchQuery(query: String) {
+        val contacts = _uiState.value.contacts
+        val filtered = if (query.isBlank()) {
+            contacts
+        } else {
+            contacts.filter { contact ->
+                contact.name.contains(query, ignoreCase = true) ||
+                contact.phoneNumbers.any { it.contains(query) }
+            }
+        }
+        _uiState.value = _uiState.value.copy(
+            contactSearchQuery = query,
+            filteredContacts = filtered
+        )
+    }
+    
+    fun unblockContact(blockedContact: BlockedContactItem) {
+        viewModelScope.launch {
+            blacklistRepository.deleteByNormalizedNumber(
+                phoneNumberUtil.normalize(blockedContact.phoneNumber)
+            )
+        }
     }
 
     fun setBlockUnknownNumbers(enabled: Boolean) {

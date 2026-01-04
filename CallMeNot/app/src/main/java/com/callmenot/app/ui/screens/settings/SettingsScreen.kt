@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,8 +33,10 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,8 +61,10 @@ fun SettingsScreen(
     
     if (uiState.showContactExclusionDialog) {
         ContactExclusionDialog(
-            contacts = uiState.contacts,
+            contacts = uiState.filteredContacts,
+            searchQuery = uiState.contactSearchQuery,
             isLoading = uiState.isLoadingContacts,
+            onSearchQueryChange = { viewModel.updateContactSearchQuery(it) },
             onToggleContact = { viewModel.toggleContactSelection(it) },
             onConfirm = { viewModel.confirmContactExclusions() },
             onDismiss = { viewModel.dismissContactExclusionDialog() }
@@ -95,6 +101,13 @@ fun SettingsScreen(
                 checked = uiState.allowAllContacts,
                 onCheckedChange = { viewModel.setAllowAllContacts(it) }
             )
+            
+            if (uiState.allowAllContacts && uiState.blockedContacts.isNotEmpty()) {
+                BlockedContactsSection(
+                    blockedContacts = uiState.blockedContacts,
+                    onUnblock = { viewModel.unblockContact(it) }
+                )
+            }
             
             HorizontalDivider()
 
@@ -361,9 +374,53 @@ private fun DiagnosticRow(
 }
 
 @Composable
+private fun BlockedContactsSection(
+    blockedContacts: List<BlockedContactItem>,
+    onUnblock: (BlockedContactItem) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = "Blocked Contacts (${blockedContacts.size})",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        blockedContacts.forEach { contact ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = contact.name,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = contact.phoneNumber,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                TextButton(onClick = { onUnblock(contact) }) {
+                    Text("Unblock")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ContactExclusionDialog(
     contacts: List<ContactItem>,
+    searchQuery: String,
     isLoading: Boolean,
+    onSearchQueryChange: (String) -> Unit,
     onToggleContact: (String) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
@@ -376,12 +433,38 @@ private fun ContactExclusionDialog(
         text = {
             Column {
                 Text(
-                    text = "Choose any contacts you want to keep blocked. You can change this later from the Activity tab.",
+                    text = "Choose any contacts you want to keep blocked.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Search by name or number") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onSearchQueryChange("") }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Clear"
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 if (isLoading) {
                     Box(
@@ -400,7 +483,7 @@ private fun ContactExclusionDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No contacts found",
+                            text = if (searchQuery.isNotEmpty()) "No matching contacts" else "No contacts found",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
