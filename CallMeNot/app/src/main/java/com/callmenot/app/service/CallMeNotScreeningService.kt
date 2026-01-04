@@ -11,15 +11,17 @@ import com.callmenot.app.domain.usecase.CallScreeningDecision
 import com.callmenot.app.domain.usecase.EvaluateCallUseCase
 import com.callmenot.app.util.ContactsHelper
 import com.callmenot.app.util.PhoneNumberUtil
+import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class CallMeNotScreeningService : CallScreeningService() {
+
+    companion object {
+        private const val TAG = "CallMeNotScreening"
+    }
 
     @Inject
     lateinit var whitelistRepository: WhitelistRepository
@@ -42,13 +44,22 @@ class CallMeNotScreeningService : CallScreeningService() {
     @Inject
     lateinit var contactsHelper: ContactsHelper
 
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     override fun onScreenCall(callDetails: Call.Details) {
-        serviceScope.launch {
-            val response = processCall(callDetails)
-            respondToCall(callDetails, response)
+        val response = runBlocking {
+            try {
+                val phoneNumber = callDetails.handle?.schemeSpecificPart
+                Log.d(TAG, "Processing incoming call: $phoneNumber")
+                processCall(callDetails)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing call, allowing by default", e)
+                CallResponse.Builder()
+                    .setDisallowCall(false)
+                    .setSkipCallLog(false)
+                    .setSkipNotification(false)
+                    .build()
+            }
         }
+        respondToCall(callDetails, response)
     }
 
     private suspend fun processCall(callDetails: Call.Details): CallResponse {
@@ -106,13 +117,16 @@ class CallMeNotScreeningService : CallScreeningService() {
     }
 
     private fun buildResponse(decision: CallScreeningDecision): CallResponse {
+        Log.d(TAG, "Building response: shouldAllow=${decision.shouldAllow}, reason=${decision.reason}")
         return if (decision.shouldAllow) {
+            Log.d(TAG, "ALLOWING call")
             CallResponse.Builder()
                 .setDisallowCall(false)
                 .setSkipCallLog(false)
                 .setSkipNotification(false)
                 .build()
         } else {
+            Log.d(TAG, "BLOCKING call")
             CallResponse.Builder()
                 .setDisallowCall(true)
                 .setRejectCall(true)

@@ -209,10 +209,19 @@ fun SettingsScreen(
                     title = "Battery Optimization Exempt",
                     isEnabled = status.isBatteryOptimizationIgnored,
                     onClick = {
-                        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                            data = Uri.parse("package:${context.packageName}")
+                        try {
+                            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                data = Uri.parse("package:${context.packageName}")
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            try {
+                                val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                context.startActivity(fallbackIntent)
+                            } catch (e2: Exception) {
+                                openAppSettings(context)
+                            }
                         }
-                        context.startActivity(intent)
                     }
                 )
             }

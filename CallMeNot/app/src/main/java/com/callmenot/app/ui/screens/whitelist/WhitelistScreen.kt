@@ -303,6 +303,18 @@ private fun ContactPickerSheet(
     onSelectContact: (ContactsHelper.Contact) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
+    var searchQuery by remember { mutableStateOf("") }
+    
+    val filteredContacts = remember(contacts, searchQuery) {
+        if (searchQuery.isBlank()) {
+            contacts
+        } else {
+            contacts.filter { contact ->
+                contact.name.contains(searchQuery, ignoreCase = true) ||
+                contact.phoneNumbers.any { it.contains(searchQuery) }
+            }
+        }
+    }
     
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -319,11 +331,22 @@ private fun ContactPickerSheet(
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Search by name or number") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                items(contacts) { contact ->
+                items(filteredContacts) { contact ->
                     Card(
                         onClick = { onSelectContact(contact) },
                         modifier = Modifier.fillMaxWidth()

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.callmenot.app.service.ProtectionNotificationService
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -55,6 +56,12 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    
+    fun completeOnboardingAndStart() {
+        viewModel.completeOnboarding()
+        ProtectionNotificationService.start(context)
+        onComplete()
+    }
     val scope = rememberCoroutineScope()
     val permissionStatus by viewModel.permissionStatus.collectAsState()
     
@@ -62,21 +69,19 @@ fun OnboardingScreen(
     
     val roleRequestLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
+    ) { _ ->
         viewModel.refreshPermissionStatus()
-        if (result.resultCode == Activity.RESULT_OK) {
-            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-        }
     }
     
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
+    ) { _ ->
         viewModel.refreshPermissionStatus()
-        if (permissions.values.all { it }) {
-            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-        }
     }
+    
+    val allPermissionsGranted = permissionStatus.hasCallScreeningRole && 
+                                 permissionStatus.hasContactsPermission && 
+                                 permissionStatus.hasCallLogPermission
 
     Column(
         modifier = Modifier
@@ -147,18 +152,32 @@ fun OnboardingScreen(
                 Spacer(modifier = Modifier.weight(1f))
             }
             
-            if (pagerState.currentPage < 3) {
-                Button(onClick = {
-                    scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-                }) {
-                    Text("Next")
+            when {
+                pagerState.currentPage < 2 -> {
+                    Button(onClick = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    }) {
+                        Text("Next")
+                    }
                 }
-            } else {
-                Button(onClick = {
-                    viewModel.completeOnboarding()
-                    onComplete()
-                }) {
-                    Text("Start Free Trial")
+                pagerState.currentPage == 2 -> {
+                    Button(
+                        onClick = {
+                            if (allPermissionsGranted) {
+                                scope.launch { pagerState.animateScrollToPage(3) }
+                            }
+                        },
+                        enabled = allPermissionsGranted
+                    ) {
+                        Text(if (allPermissionsGranted) "Next" else "Grant Permissions")
+                    }
+                }
+                else -> {
+                    Button(onClick = {
+                        completeOnboardingAndStart()
+                    }) {
+                        Text("Start Free Trial")
+                    }
                 }
             }
         }
