@@ -111,7 +111,9 @@ fun ActivityScreen(
                         event = event,
                         onAddToWhitelist = { viewModel.addToWhitelist(event) },
                         onRemoveFromWhitelist = { viewModel.removeFromWhitelist(event) },
-                        onAllowTemporarily = { hours -> viewModel.allowTemporarily(event, hours) }
+                        onAllowTemporarily = { hours -> viewModel.allowTemporarily(event, hours) },
+                        onAddToBlacklist = { viewModel.addToBlacklist(event) },
+                        onRemoveFromBlacklist = { viewModel.removeFromBlacklist(event) }
                     )
                 }
             }
@@ -146,7 +148,9 @@ private fun CallEventCard(
     event: CallEvent,
     onAddToWhitelist: () -> Unit,
     onRemoveFromWhitelist: () -> Unit,
-    onAllowTemporarily: (Int) -> Unit
+    onAllowTemporarily: (Int) -> Unit,
+    onAddToBlacklist: () -> Unit,
+    onRemoveFromBlacklist: () -> Unit
 ) {
     val context = LocalContext.current
     val isBlocked = event.action == CallAction.BLOCKED
@@ -261,20 +265,30 @@ private fun CallEventCard(
                     }
                     
                     if (isBlocked) {
-                        DropdownMenuItem(
-                            text = { Text("Add to Whitelist") },
-                            onClick = {
-                                onAddToWhitelist()
-                                showMenu = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Allow Temporarily...") },
-                            onClick = {
-                                showTemporaryDialog = true
-                                showMenu = false
-                            }
-                        )
+                        if (event.reason == CallReason.BLACKLISTED) {
+                            DropdownMenuItem(
+                                text = { Text("Remove from Blacklist") },
+                                onClick = {
+                                    onRemoveFromBlacklist()
+                                    showMenu = false
+                                }
+                            )
+                        } else {
+                            DropdownMenuItem(
+                                text = { Text("Add to Whitelist") },
+                                onClick = {
+                                    onAddToWhitelist()
+                                    showMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Allow Temporarily...") },
+                                onClick = {
+                                    showTemporaryDialog = true
+                                    showMenu = false
+                                }
+                            )
+                        }
                     } else {
                         if (event.reason == CallReason.WHITELISTED) {
                             DropdownMenuItem(
@@ -285,6 +299,13 @@ private fun CallEventCard(
                                 }
                             )
                         }
+                        DropdownMenuItem(
+                            text = { Text("Add to Blacklist") },
+                            onClick = {
+                                onAddToBlacklist()
+                                showMenu = false
+                            }
+                        )
                     }
                 }
             }
@@ -349,6 +370,7 @@ private fun formatReason(reason: CallReason): String {
         CallReason.RECENT_OUTGOING -> "Recent outgoing call"
         CallReason.EMERGENCY_BYPASS -> "Emergency bypass"
         CallReason.NOT_WHITELISTED -> "Not in whitelist"
+        CallReason.BLACKLISTED -> "Blacklisted"
         CallReason.UNKNOWN_NUMBER_BLOCKED -> "Unknown number blocked"
         CallReason.SCREENING_DISABLED -> "Screening disabled"
         CallReason.SUBSCRIPTION_INACTIVE -> "Subscription inactive"

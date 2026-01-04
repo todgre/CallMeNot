@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.callmenot.app.data.local.entity.CallAction
 import com.callmenot.app.data.local.entity.CallEvent
+import com.callmenot.app.data.repository.BlacklistRepository
 import com.callmenot.app.data.repository.CallEventRepository
 import com.callmenot.app.data.repository.WhitelistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +23,8 @@ data class ActivityUiState(
 @HiltViewModel
 class ActivityViewModel @Inject constructor(
     private val callEventRepository: CallEventRepository,
-    private val whitelistRepository: WhitelistRepository
+    private val whitelistRepository: WhitelistRepository,
+    private val blacklistRepository: BlacklistRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ActivityUiState())
@@ -76,6 +78,24 @@ class ActivityViewModel @Inject constructor(
                 notes = "Temporary access",
                 expiresAt = expiresAt
             )
+        }
+    }
+    
+    fun addToBlacklist(event: CallEvent) {
+        viewModelScope.launch {
+            val number = event.normalizedNumber ?: event.phoneNumber ?: return@launch
+            blacklistRepository.addEntry(
+                displayName = event.displayName ?: number,
+                phoneNumber = number,
+                reason = "Blocked from call activity"
+            )
+        }
+    }
+    
+    fun removeFromBlacklist(event: CallEvent) {
+        viewModelScope.launch {
+            val number = event.normalizedNumber ?: event.phoneNumber ?: return@launch
+            blacklistRepository.deleteByNormalizedNumber(number)
         }
     }
 }

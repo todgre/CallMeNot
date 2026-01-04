@@ -3,6 +3,7 @@ package com.callmenot.app.domain.usecase
 import android.content.ContentResolver
 import android.provider.CallLog
 import com.callmenot.app.data.local.entity.CallReason
+import com.callmenot.app.data.repository.BlacklistRepository
 import com.callmenot.app.data.repository.CallEventRepository
 import com.callmenot.app.data.repository.SettingsRepository
 import com.callmenot.app.data.repository.WhitelistRepository
@@ -20,6 +21,7 @@ data class CallScreeningDecision(
 
 class EvaluateCallUseCase @Inject constructor(
     private val whitelistRepository: WhitelistRepository,
+    private val blacklistRepository: BlacklistRepository,
     private val callEventRepository: CallEventRepository,
     private val settingsRepository: SettingsRepository,
     private val billingManager: BillingManager,
@@ -75,6 +77,13 @@ class EvaluateCallUseCase @Inject constructor(
             return CallScreeningDecision(
                 shouldAllow = false,
                 reason = CallReason.NOT_WHITELISTED
+            )
+        }
+        
+        if (blacklistRepository.isNumberBlacklisted(normalizedNumber)) {
+            return CallScreeningDecision(
+                shouldAllow = false,
+                reason = CallReason.BLACKLISTED
             )
         }
         
