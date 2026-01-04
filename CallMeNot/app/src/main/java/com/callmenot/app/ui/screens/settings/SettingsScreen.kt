@@ -100,7 +100,7 @@ fun SettingsScreen(
 
             SettingsToggle(
                 title = "Allow Recent Outgoing",
-                description = "Numbers you called in last 7 days can call back",
+                description = "Numbers you called in last 3 days can call back",
                 checked = uiState.allowRecentOutgoing,
                 onCheckedChange = { viewModel.setAllowRecentOutgoing(it) }
             )
