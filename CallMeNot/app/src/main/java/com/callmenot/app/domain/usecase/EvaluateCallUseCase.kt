@@ -92,6 +92,13 @@ class EvaluateCallUseCase @Inject constructor(
             )
         }
         
+        if (settings.allowAllContacts && contactsHelper.isKnownContact(normalizedNumber)) {
+            return CallScreeningDecision(
+                shouldAllow = true,
+                reason = CallReason.KNOWN_CONTACT
+            )
+        }
+        
         if (settings.emergencyBypassEnabled) {
             val recentCallCount = callEventRepository.getRecentCallCount(
                 normalizedNumber = normalizedNumber,

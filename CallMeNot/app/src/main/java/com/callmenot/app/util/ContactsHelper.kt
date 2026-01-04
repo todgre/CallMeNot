@@ -48,6 +48,10 @@ class ContactsHelper @Inject constructor(
         return null
     }
     
+    fun isKnownContact(phoneNumber: String): Boolean {
+        return getContactName(phoneNumber) != null
+    }
+    
     fun isStarredContact(phoneNumber: String): Boolean {
         val uri = Uri.withAppendedPath(
             ContactsContract.PhoneLookup.CONTENT_FILTER_URI,

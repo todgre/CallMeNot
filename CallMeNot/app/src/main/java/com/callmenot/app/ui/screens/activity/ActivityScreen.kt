@@ -345,6 +345,7 @@ private fun formatReason(reason: CallReason): String {
     return when (reason) {
         CallReason.WHITELISTED -> "In whitelist"
         CallReason.STARRED_CONTACT -> "Starred contact"
+        CallReason.KNOWN_CONTACT -> "In contacts"
         CallReason.RECENT_OUTGOING -> "Recent outgoing call"
         CallReason.EMERGENCY_BYPASS -> "Emergency bypass"
         CallReason.NOT_WHITELISTED -> "Not in whitelist"

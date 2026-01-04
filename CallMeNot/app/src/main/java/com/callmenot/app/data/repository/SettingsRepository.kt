@@ -25,6 +25,7 @@ class SettingsRepository @Inject constructor(
     private object Keys {
         val BLOCKING_ENABLED = booleanPreferencesKey("blocking_enabled")
         val ALLOW_STARRED_CONTACTS = booleanPreferencesKey("allow_starred_contacts")
+        val ALLOW_ALL_CONTACTS = booleanPreferencesKey("allow_all_contacts")
         val BLOCK_UNKNOWN_NUMBERS = booleanPreferencesKey("block_unknown_numbers")
         val EMERGENCY_BYPASS_ENABLED = booleanPreferencesKey("emergency_bypass_enabled")
         val EMERGENCY_BYPASS_MINUTES = intPreferencesKey("emergency_bypass_minutes")
@@ -43,6 +44,7 @@ class SettingsRepository @Inject constructor(
     
     val blockingEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.BLOCKING_ENABLED] ?: true }
     val allowStarredContacts: Flow<Boolean> = context.dataStore.data.map { it[Keys.ALLOW_STARRED_CONTACTS] ?: true }
+    val allowAllContacts: Flow<Boolean> = context.dataStore.data.map { it[Keys.ALLOW_ALL_CONTACTS] ?: false }
     val blockUnknownNumbers: Flow<Boolean> = context.dataStore.data.map { it[Keys.BLOCK_UNKNOWN_NUMBERS] ?: true }
     val emergencyBypassEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EMERGENCY_BYPASS_ENABLED] ?: true }
     val emergencyBypassMinutes: Flow<Int> = context.dataStore.data.map { it[Keys.EMERGENCY_BYPASS_MINUTES] ?: 3 }
@@ -64,6 +66,10 @@ class SettingsRepository @Inject constructor(
     
     suspend fun setAllowStarredContacts(enabled: Boolean) {
         context.dataStore.edit { it[Keys.ALLOW_STARRED_CONTACTS] = enabled }
+    }
+    
+    suspend fun setAllowAllContacts(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.ALLOW_ALL_CONTACTS] = enabled }
     }
     
     suspend fun setBlockUnknownNumbers(enabled: Boolean) {
@@ -136,6 +142,7 @@ class SettingsRepository @Inject constructor(
         return SettingsSnapshot(
             blockingEnabled = prefs[Keys.BLOCKING_ENABLED] ?: true,
             allowStarredContacts = prefs[Keys.ALLOW_STARRED_CONTACTS] ?: true,
+            allowAllContacts = prefs[Keys.ALLOW_ALL_CONTACTS] ?: false,
             blockUnknownNumbers = prefs[Keys.BLOCK_UNKNOWN_NUMBERS] ?: true,
             emergencyBypassEnabled = prefs[Keys.EMERGENCY_BYPASS_ENABLED] ?: true,
             emergencyBypassMinutes = prefs[Keys.EMERGENCY_BYPASS_MINUTES] ?: 3,
@@ -153,6 +160,7 @@ class SettingsRepository @Inject constructor(
 data class SettingsSnapshot(
     val blockingEnabled: Boolean,
     val allowStarredContacts: Boolean,
+    val allowAllContacts: Boolean,
     val blockUnknownNumbers: Boolean,
     val emergencyBypassEnabled: Boolean,
     val emergencyBypassMinutes: Int,

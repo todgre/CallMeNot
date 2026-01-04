@@ -25,6 +25,7 @@ enum class CallAction {
 enum class CallReason {
     WHITELISTED,
     STARRED_CONTACT,
+    KNOWN_CONTACT,
     RECENT_OUTGOING,
     EMERGENCY_BYPASS,
     NOT_WHITELISTED,

@@ -17,6 +17,7 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val allowStarredContacts: Boolean = true,
+    val allowAllContacts: Boolean = false,
     val blockUnknownNumbers: Boolean = true,
     val emergencyBypassEnabled: Boolean = true,
     val emergencyBypassMinutes: Int = 3,
@@ -67,16 +68,16 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 settingsRepository.allowStarredContacts,
+                settingsRepository.allowAllContacts,
                 settingsRepository.blockUnknownNumbers,
                 settingsRepository.emergencyBypassEnabled,
-                settingsRepository.emergencyBypassMinutes,
                 settingsRepository.allowRecentOutgoing
-            ) { starred, blockUnknown, emergencyBypass, emergencyMinutes, recentOutgoing ->
+            ) { starred, allContacts, blockUnknown, emergencyBypass, recentOutgoing ->
                 _uiState.value.copy(
                     allowStarredContacts = starred,
+                    allowAllContacts = allContacts,
                     blockUnknownNumbers = blockUnknown,
                     emergencyBypassEnabled = emergencyBypass,
-                    emergencyBypassMinutes = emergencyMinutes,
                     allowRecentOutgoing = recentOutgoing
                 )
             }.collect { newState ->
@@ -94,6 +95,12 @@ class SettingsViewModel @Inject constructor(
     fun setAllowStarredContacts(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAllowStarredContacts(enabled)
+        }
+    }
+
+    fun setAllowAllContacts(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setAllowAllContacts(enabled)
         }
     }
 

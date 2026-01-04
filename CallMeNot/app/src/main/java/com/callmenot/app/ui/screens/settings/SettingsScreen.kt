@@ -72,6 +72,15 @@ fun SettingsScreen(
             HorizontalDivider()
 
             SettingsToggle(
+                title = "Allow All Contacts",
+                description = "Anyone in your phone's contact list can call",
+                checked = uiState.allowAllContacts,
+                onCheckedChange = { viewModel.setAllowAllContacts(it) }
+            )
+            
+            HorizontalDivider()
+
+            SettingsToggle(
                 title = "Block Unknown Numbers",
                 description = "Block calls with hidden caller ID",
                 checked = uiState.blockUnknownNumbers,
