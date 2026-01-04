@@ -1,0 +1,47 @@
+todd@todd-Latitude-5400:~$ adb logcat -c && adb logcat | grep -E "(AndroidRuntime|FATAL|Exception)"
+01-04 08:56:25.783  4097 32541 E LoadedApk: Exception : java.lang.NullPointerException: Attempt to invoke virtual method 'boolean android.os.Looper.isPerfLogEnable()' on a null object reference
+01-04 08:56:25.812  4097 18914 E LoadedApk: Exception : java.lang.NullPointerException: Attempt to invoke virtual method 'boolean android.os.Looper.isPerfLogEnable()' on a null object reference
+01-04 08:56:25.813  4097 18914 E LoadedApk: Exception : java.lang.NullPointerException: Attempt to invoke virtual method 'boolean android.os.Looper.isPerfLogEnable()' on a null object reference
+01-04 08:56:25.832  2448  2448 W System.err: java.lang.NullPointerException: Attempt to invoke interface method 'android.os.IBinder android.os.IBinder.getExtension()' on a null object reference
+01-04 08:56:34.594  9464  9464 E HBD     : android.content.pm.PackageManager$NameNotFoundException: com.sec.android.inputmethod
+01-04 08:56:34.648  9464  9508 E HBD     : f [SKE_REPLACEMENT] java.io.FileNotFoundException: /data/user/0/com.samsung.android.honeyboard/app_SwiftKey/user/revokedlist: open failed: ENOENT (No such file or directory), Error while reading the revokedList from file.
+01-04 08:56:34.648  9464  9507 E HBD     : f [SKE_REPLACEMENT] java.io.FileNotFoundException: /data/user/0/com.samsung.android.honeyboard/app_SwiftKey/user/revokedlist: open failed: ENOENT (No such file or directory), Error while reading the revokedList from file.
+01-04 08:56:41.485  3750  3750 E HoneySpace.BadgeIconDecoratorCreator: NameNotFoundException /#UserHandle{0}
+01-04 08:56:41.485  3750  3750 E HoneySpace.BadgeIconDecoratorCreator: NameNotFoundException /#UserHandle{0}
+01-04 08:56:41.486  3750  3750 E HoneySpace.BadgeIconDecoratorCreator: NameNotFoundException /#UserHandle{0}
+01-04 08:56:41.486  3750  3750 E HoneySpace.BadgeIconDecoratorCreator: NameNotFoundException /#UserHandle{0}
+01-04 08:56:46.474  2448  2448 I SAccessoryManager_SAccessoryManager: File read fail java.io.FileNotFoundException: sys/class/power_supply/battery/wpc_auth_mode: open failed: ENOENT (No such file or directory)
+01-04 08:56:52.097  2337  9360 E SettingsSearchIndexablesProvider: Exception - getDynamicSearchIndexableRawData() class : SecuredLockSettingsMenu / Attempt to invoke virtual method 'int com.android.internal.widget.LockPatternUtils.getCredentialTypeForUser(int)' on a null object reference
+01-04 08:56:52.509  9847  9847 E PkgMgrAPI: hasPackage() - NameNotFoundException occurred. packageName : com.google.android.marvin.talkback
+01-04 08:56:52.942  2337  9360 D ConnectionsUtils: isHideAdvancedCalling: Exception 
+01-04 08:56:52.975  2337  9360 I CollectDiagnosticsPreferenceController: NameNotFoundException : MyAccount
+01-04 08:56:53.298  9991  9991 D d       : ExceptionHandlerManager not explicitly initialized, using default mode
+01-04 08:56:53.345  9991  9991 E SQLiteDatabase: android.database.sqlite.SQLiteCantOpenDatabaseException: Cannot open database [unable to open database file (code 1806 SQLITE_CANTOPEN_ENOENT[1806]): No such file or directory] '/data/user/0/com.facebook.appmanager/databases/androidx.work.workdb' with flags 0x0: File /data/user/0/com.facebook.appmanager/databases/androidx.work.workdb doesn't exist
+01-04 08:56:53.345  9991  9991 E SQLiteDatabase: Caused by: android.database.sqlite.SQLiteCantOpenDatabaseException: unable to open database file (code 1806 SQLITE_CANTOPEN_ENOENT[1806]): No such file or directory
+01-04 08:56:53.351 10016 10016 E AODSettingsHelper: HashMap CollisionException!! Please don't add same setting uri!!! NewKey:remove_animations, OriKey:remove_animations
+01-04 08:56:53.372  2337  9360 D MobileWIPSExceptionList: Key should remain added in search index
+01-04 08:56:53.395 10016 10016 E getBitmap : FileNotFoundException: /data/user/0/com.samsung.android.app.aodservice/files/sub_home_wallpaper_bitmap: open failed: ENOENT (No such file or directory)
+01-04 08:56:53.396 10016 10016 E getBitmap : FileNotFoundException: /data/user/0/com.samsung.android.app.aodservice/files/sub_home_theme_wallpaper_bitmap: open failed: ENOENT (No such file or directory)
+01-04 08:56:53.398 10016 10016 E getBitmap : FileNotFoundException: /data/user/0/com.samsung.android.app.aodservice/files/sub_home_wallpaper_bitmap: open failed: ENOENT (No such file or directory)
+01-04 08:56:53.398 10016 10016 E getBitmap : FileNotFoundException: /data/user/0/com.samsung.android.app.aodservice/files/sub_home_theme_wallpaper_bitmap: open failed: ENOENT (No such file or directory)
+01-04 08:56:53.476 10016 10047 W System.err: android.database.sqlite.SQLiteException: no such table: table_sub_launcher_settings (code 1 SQLITE_ERROR[1]): , while compiling: SELECT * FROM table_sub_launcher_settings
+01-04 08:56:53.479 10016 10047 W System.err: android.database.sqlite.SQLiteException: no such table: table_sub_launcher_settings (code 1 SQLITE_ERROR[1]): , while compiling: SELECT * FROM table_sub_launcher_settings WHERE (SETTING_KEY=?)
+01-04 08:56:53.492 10016 10047 W System.err: android.database.sqlite.SQLiteException: no such table: table_sub_launcher_settings (code 1 SQLITE_ERROR[1]): , while compiling: SELECT * FROM table_sub_launcher_settings WHERE (SETTING_KEY=?)
+01-04 08:56:54.501 10109 10122 E UD.PackageUtils: NameNotFoundException android.content.pm.PackageManager$NameNotFoundException: com.samsung.rms.retailagent.global
+01-04 08:56:54.661 10227 10227 I [SC]SamsungCloudApp: time elapsed to initialize ExceptionFilterInitializer: 0
+01-04 08:56:54.688 10227 10280 W Bundle  : java.lang.ClassCastException: java.lang.Float cannot be cast to java.lang.String
+01-04 08:56:54.756 10227 10318 W [SC]e   : cannot init voice content : android.content.pm.PackageManager$NameNotFoundException: com.sec.android.app.voicenote
+01-04 08:56:54.769 10227 10318 E [SC]CtbConfigurationManager: [E] ctb policy dispatch fail : java.lang.NullPointerException: fromString(...) must not be null 
+01-04 08:56:54.862  2337  9360 W BaseSearchIndex: Error initializing controller in fragment: com.samsung.android.settings.asbase.audio.SoundSettings$3@480bc3b, e: java.lang.NullPointerException: Attempt to invoke virtual method 'void com.android.settingslib.core.lifecycle.Lifecycle.addObserver(androidx.lifecycle.LifecycleObserver)' on a null object reference
+01-04 08:56:55.139 10360 10360 E FeatureFlagsImplExport: android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+01-04 08:56:55.165  9464  9472 E HBD     : java.lang.NullPointerException
+01-04 08:56:55.197 10479 10479 E SHelperLog: [ExternalSettingsProvider] updateMenuData Error. java.lang.SecurityException: Failed to find provider null for user 0; expected to find a valid ContentProvider for this authority
+01-04 08:56:55.350 10372 10443 W Bundle  : java.lang.ClassCastException: Cannot cast com.samsung.euicc.lib.message.ListProfileInfo to com.samsung.euicc.lib.message.Response
+01-04 08:56:55.585 10567 10567 W ORC/PackageInfo: isPreloadedApp NameNotFoundException android.content.pm.PackageManager$NameNotFoundException: com.sec.android.app.firewall
+01-04 08:56:55.642 10567 10584 W System.err: java.lang.NullPointerException: Attempt to invoke virtual method 'boolean java.lang.Boolean.booleanValue()' on a null object reference
+01-04 08:56:56.973 10891 10948 E Routine@Core[4.9.04.13]: WearNodeManagerImpl: getNodeOfCompanionWatchSupportModeMirror: onFailure - com.google.android.gms.common.api.ApiException: 17: API: Wearable.API is not available on this device. Connection failed with: ConnectionResult{statusCode=API_UNAVAILABLE, resolution=null, message=null}
+01-04 08:56:57.088  2448  3469 W BinderNative: java.lang.SecurityException: Specified package "com.google.android.googlequicksearchbox" under uid 1000 but it is not
+01-04 08:56:58.769  2448  2543 W BroadcastQueue: Failed to schedule BroadcastRecord{adb7db3 WakingExecutorService.ACTION_ALARM.com.facebook.orca.Mqtt_Wakeup/u0} to BroadcastFilter{b1b6320 10327/u0 ReceiverList{4642223 25829 com.facebook.orca/10327/u0 remote:89a3f52}} via ProcessRecord{5482d1a 25829:com.facebook.orca/u0a327} with Intent { act=WakingExecutorService.ACTION_ALARM.com.facebook.orca.Mqtt_Wakeup flg=0x10 xflg=0x4 pkg=com.facebook.orca (has extras) }: android.os.DeadObjectException
+01-04 08:56:58.775  2448  3049 E ConnectivityService: RemoteException caught trying to send a callback msg for NetworkRequest [ TRACK_DEFAULT id=2932, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10327 RequestorUid: 10327 RequestorPkg: com.facebook.orca UnderlyingNetworks: Null] ]
+01-04 08:56:58.874  2448  2448 I TextToSpeechManagerPerUserService: Failed running callback method: android.os.DeadObjectException
+01-04 08:56:58.971  2337  9360 W PrefCtrlListHelper: Cannot instantiate controller from reflection: com.android.settings.notification.zen.ZenModeContactExceptionController
