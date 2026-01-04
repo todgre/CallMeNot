@@ -182,7 +182,19 @@ class SettingsViewModel @Inject constructor(
                 contact
             }
         }
-        _uiState.value = _uiState.value.copy(contacts = updatedContacts)
+        val query = _uiState.value.contactSearchQuery
+        val filtered = if (query.isBlank()) {
+            updatedContacts
+        } else {
+            updatedContacts.filter { contact ->
+                contact.name.contains(query, ignoreCase = true) ||
+                contact.phoneNumbers.any { it.contains(query) }
+            }
+        }
+        _uiState.value = _uiState.value.copy(
+            contacts = updatedContacts,
+            filteredContacts = filtered
+        )
     }
     
     fun confirmContactExclusions() {
