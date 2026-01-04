@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -56,6 +57,8 @@ fun WhitelistScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val contacts by viewModel.contacts.collectAsState()
+    var showInfoDialog by remember { mutableStateOf(false) }
+    var entryToDelete by remember { mutableStateOf<WhitelistEntry?>(null) }
     
     Scaffold(
         floatingActionButton = {
@@ -72,11 +75,24 @@ fun WhitelistScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Whitelist",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Whitelist",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(onClick = { showInfoDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "What is a whitelist?",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             
             Text(
                 text = "Only these people can call you",
@@ -106,7 +122,7 @@ fun WhitelistScreen(
                     items(uiState.entries, key = { it.id }) { entry ->
                         WhitelistEntryCard(
                             entry = entry,
-                            onDelete = { viewModel.deleteEntry(entry) },
+                            onDelete = { entryToDelete = entry },
                             onToggleEmergencyBypass = { viewModel.toggleEmergencyBypass(entry) }
                         )
                     }
@@ -128,6 +144,67 @@ fun WhitelistScreen(
             contacts = contacts,
             onDismiss = { viewModel.hideContactPicker() },
             onSelectContact = { viewModel.addFromContact(it) }
+        )
+    }
+    
+    if (showInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showInfoDialog = false },
+            title = { Text("What is a Whitelist?") },
+            text = {
+                Column {
+                    Text(
+                        "A whitelist is your list of approved callers. When call protection is active:",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "\u2022 Calls FROM people on your whitelist will ring through normally",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "\u2022 Calls from everyone else will be automatically blocked",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Add your family, friends, doctors, and other important contacts to ensure you never miss their calls.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = false }) {
+                    Text("Got it")
+                }
+            }
+        )
+    }
+    
+    entryToDelete?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { entryToDelete = null },
+            title = { Text("Remove from Whitelist?") },
+            text = {
+                Text("Are you sure you want to remove ${entry.displayName} from your whitelist? Calls from this number will be blocked.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteEntry(entry)
+                        entryToDelete = null
+                    }
+                ) {
+                    Text("Remove", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { entryToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 }

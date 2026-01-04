@@ -47,7 +47,7 @@ class SettingsRepository @Inject constructor(
     val emergencyBypassEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EMERGENCY_BYPASS_ENABLED] ?: true }
     val emergencyBypassMinutes: Flow<Int> = context.dataStore.data.map { it[Keys.EMERGENCY_BYPASS_MINUTES] ?: 3 }
     val allowRecentOutgoing: Flow<Boolean> = context.dataStore.data.map { it[Keys.ALLOW_RECENT_OUTGOING] ?: true }
-    val recentOutgoingDays: Flow<Int> = context.dataStore.data.map { it[Keys.RECENT_OUTGOING_DAYS] ?: 7 }
+    val recentOutgoingDays: Flow<Int> = context.dataStore.data.map { it[Keys.RECENT_OUTGOING_DAYS] ?: 1 }
     val scheduleEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.SCHEDULE_ENABLED] ?: false }
     val scheduleStartHour: Flow<Int> = context.dataStore.data.map { it[Keys.SCHEDULE_START_HOUR] ?: 22 }
     val scheduleStartMinute: Flow<Int> = context.dataStore.data.map { it[Keys.SCHEDULE_START_MINUTE] ?: 0 }
@@ -140,7 +140,7 @@ class SettingsRepository @Inject constructor(
             emergencyBypassEnabled = prefs[Keys.EMERGENCY_BYPASS_ENABLED] ?: true,
             emergencyBypassMinutes = prefs[Keys.EMERGENCY_BYPASS_MINUTES] ?: 3,
             allowRecentOutgoing = prefs[Keys.ALLOW_RECENT_OUTGOING] ?: true,
-            recentOutgoingDays = prefs[Keys.RECENT_OUTGOING_DAYS] ?: 7,
+            recentOutgoingDays = prefs[Keys.RECENT_OUTGOING_DAYS] ?: 1,
             scheduleEnabled = prefs[Keys.SCHEDULE_ENABLED] ?: false,
             scheduleStartHour = prefs[Keys.SCHEDULE_START_HOUR] ?: 22,
             scheduleStartMinute = prefs[Keys.SCHEDULE_START_MINUTE] ?: 0,
