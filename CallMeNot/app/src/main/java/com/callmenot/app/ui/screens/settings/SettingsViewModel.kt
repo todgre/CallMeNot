@@ -2,18 +2,30 @@ package com.callmenot.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.callmenot.app.data.repository.BlacklistRepository
 import com.callmenot.app.data.repository.SettingsRepository
 import com.callmenot.app.service.BillingManager
 import com.callmenot.app.service.SubscriptionStatus
+import com.callmenot.app.util.ContactsHelper
 import com.callmenot.app.util.PermissionHelper
+import com.callmenot.app.util.PhoneNumberUtil
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+data class ContactItem(
+    val id: String,
+    val name: String,
+    val phoneNumbers: List<String>,
+    val isSelected: Boolean = false
+)
 
 data class SettingsUiState(
     val allowStarredContacts: Boolean = true,
@@ -28,14 +40,20 @@ data class SettingsUiState(
     val subscriptionStatus: SubscriptionStatus = SubscriptionStatus.Loading,
     val trialDaysRemaining: Int = 0,
     val userEmail: String? = null,
-    val permissionStatus: PermissionHelper.PermissionStatus? = null
+    val permissionStatus: PermissionHelper.PermissionStatus? = null,
+    val showContactExclusionDialog: Boolean = false,
+    val contacts: List<ContactItem> = emptyList(),
+    val isLoadingContacts: Boolean = false
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val billingManager: BillingManager,
-    private val permissionHelper: PermissionHelper
+    private val permissionHelper: PermissionHelper,
+    private val contactsHelper: ContactsHelper,
+    private val blacklistRepository: BlacklistRepository,
+    private val phoneNumberUtil: PhoneNumberUtil
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -99,9 +117,76 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setAllowAllContacts(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setAllowAllContacts(enabled)
+        if (enabled) {
+            viewModelScope.launch {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingContacts = true,
+                    showContactExclusionDialog = true
+                )
+                
+                val contacts = withContext(Dispatchers.IO) {
+                    contactsHelper.getAllContacts().map { contact ->
+                        ContactItem(
+                            id = contact.id,
+                            name = contact.name,
+                            phoneNumbers = contact.phoneNumbers,
+                            isSelected = false
+                        )
+                    }
+                }
+                
+                _uiState.value = _uiState.value.copy(
+                    contacts = contacts,
+                    isLoadingContacts = false
+                )
+            }
+        } else {
+            viewModelScope.launch {
+                settingsRepository.setAllowAllContacts(false)
+            }
         }
+    }
+    
+    fun toggleContactSelection(contactId: String) {
+        val updatedContacts = _uiState.value.contacts.map { contact ->
+            if (contact.id == contactId) {
+                contact.copy(isSelected = !contact.isSelected)
+            } else {
+                contact
+            }
+        }
+        _uiState.value = _uiState.value.copy(contacts = updatedContacts)
+    }
+    
+    fun confirmContactExclusions() {
+        viewModelScope.launch {
+            val selectedContacts = _uiState.value.contacts.filter { it.isSelected }
+            
+            for (contact in selectedContacts) {
+                for (phoneNumber in contact.phoneNumbers) {
+                    val normalized = phoneNumberUtil.normalize(phoneNumber)
+                    blacklistRepository.addToBlacklist(
+                        phoneNumber = normalized,
+                        displayName = contact.name,
+                        reason = "Excluded when enabling Allow All Contacts"
+                    )
+                }
+            }
+            
+            settingsRepository.setAllowAllContacts(true)
+            
+            _uiState.value = _uiState.value.copy(
+                showContactExclusionDialog = false,
+                contacts = emptyList()
+            )
+        }
+    }
+    
+    fun dismissContactExclusionDialog() {
+        _uiState.value = _uiState.value.copy(
+            showContactExclusionDialog = false,
+            contacts = emptyList()
+        )
     }
 
     fun setBlockUnknownNumbers(enabled: Boolean) {
