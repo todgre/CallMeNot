@@ -49,7 +49,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val trialDays = settingsRepository.getTrialDaysRemaining()
             val permStatus = permissionHelper.getPermissionStatus()
-            val user = FirebaseAuth.getInstance().currentUser
+            val user = try {
+                FirebaseAuth.getInstance().currentUser
+            } catch (e: Exception) {
+                null
+            }
             
             _uiState.value = _uiState.value.copy(
                 trialDaysRemaining = trialDays,
@@ -118,7 +122,11 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun signOut() {
-        FirebaseAuth.getInstance().signOut()
+        try {
+            FirebaseAuth.getInstance().signOut()
+        } catch (e: Exception) {
+            // Firebase not configured, ignore
+        }
         viewModelScope.launch {
             settingsRepository.setUserId(null)
         }
