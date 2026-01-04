@@ -164,10 +164,9 @@ class SettingsViewModel @Inject constructor(
             
             for (contact in selectedContacts) {
                 for (phoneNumber in contact.phoneNumbers) {
-                    val normalized = phoneNumberUtil.normalize(phoneNumber)
-                    blacklistRepository.addToBlacklist(
-                        phoneNumber = normalized,
+                    blacklistRepository.addEntry(
                         displayName = contact.name,
+                        phoneNumber = phoneNumber,
                         reason = "Excluded when enabling Allow All Contacts"
                     )
                 }
