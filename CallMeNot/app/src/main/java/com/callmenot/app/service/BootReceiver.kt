@@ -7,8 +7,10 @@ import android.content.Intent
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            // Start the protection notification service
             ProtectionNotificationService.start(context)
+            if (SamsungCallBlockerService.isSamsungDevice()) {
+                SamsungCallBlockerService.start(context)
+            }
         }
     }
 }

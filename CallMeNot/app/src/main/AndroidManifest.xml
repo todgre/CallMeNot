@@ -74,6 +74,10 @@
             android:foregroundServiceType="phoneCall"
             android:exported="false" />
 
+        <service
+            android:name=".service.SamsungCallBlockerService"
+            android:exported="false" />
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.callmenot.app.service.ProtectionNotificationService
+import com.callmenot.app.service.SamsungCallBlockerService
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -60,6 +61,9 @@ fun OnboardingScreen(
     fun completeOnboardingAndStart() {
         viewModel.completeOnboarding()
         ProtectionNotificationService.start(context)
+        if (SamsungCallBlockerService.isSamsungDevice()) {
+            SamsungCallBlockerService.start(context)
+        }
         onComplete()
     }
     val scope = rememberCoroutineScope()
