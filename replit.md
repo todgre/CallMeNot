@@ -83,7 +83,7 @@ Before building for production:
 
 - **Notification Bug Fix**: Service now properly starts/stops based on protection toggle, checks saved state on device boot
 - **Call Log Filtering**: Added time period filter (Today, 1 Week, 1 Month, 1 Year, All Time) with dropdown UI
-- **Optional Firebase**: App works fully locally without account; cloud sync is clearly marked as optional in Settings
+- **Optional Firebase**: App works fully locally without account; cloud sync is optional for backing up settings and syncing whitelist across devices
 - **What's New Dialog**: Shows changelog after app updates, tracks last seen version in DataStore
 - **App Icon**: Clean shield with checkmark design representing call protection
 
