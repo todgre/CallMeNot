@@ -1,6 +1,8 @@
 package com.callmenot.app.ui.screens.onboarding
 
-import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -83,9 +85,16 @@ fun OnboardingScreen(
         viewModel.refreshPermissionStatus()
     }
     
+    val batteryOptimizationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        viewModel.refreshPermissionStatus()
+    }
+    
     val allPermissionsGranted = permissionStatus.hasCallScreeningRole && 
                                  permissionStatus.hasContactsPermission && 
-                                 permissionStatus.hasCallLogPermission
+                                 permissionStatus.hasCallLogPermission &&
+                                 permissionStatus.isBatteryOptimizationIgnored
 
     Column(
         modifier = Modifier
@@ -114,6 +123,21 @@ fun OnboardingScreen(
                                 android.Manifest.permission.READ_CALL_LOG
                             )
                         )
+                    },
+                    onRequestBatteryOptimization = {
+                        try {
+                            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                data = Uri.parse("package:${context.packageName}")
+                            }
+                            batteryOptimizationLauncher.launch(intent)
+                        } catch (e: Exception) {
+                            try {
+                                val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                batteryOptimizationLauncher.launch(fallbackIntent)
+                            } catch (e2: Exception) {
+                                // Ignore if both fail
+                            }
+                        }
                     }
                 )
                 3 -> TrialPage()
@@ -300,7 +324,8 @@ private fun FeatureItem(icon: ImageVector, title: String, description: String) {
 private fun PermissionsPage(
     permissionStatus: com.callmenot.app.util.PermissionHelper.PermissionStatus,
     onRequestRole: () -> Unit,
-    onRequestPermissions: () -> Unit
+    onRequestPermissions: () -> Unit,
+    onRequestBatteryOptimization: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -321,7 +346,7 @@ private fun PermissionsPage(
             textAlign = TextAlign.Center
         )
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         
         PermissionCard(
             title = "Call Screening",
@@ -330,13 +355,22 @@ private fun PermissionsPage(
             onRequest = onRequestRole
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
         PermissionCard(
             title = "Contacts & Call Log",
             description = "To import contacts and check recent calls",
             isGranted = permissionStatus.hasContactsPermission && permissionStatus.hasCallLogPermission,
             onRequest = onRequestPermissions
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        PermissionCard(
+            title = "Background Running",
+            description = "Keeps call protection active at all times",
+            isGranted = permissionStatus.isBatteryOptimizationIgnored,
+            onRequest = onRequestBatteryOptimization
         )
     }
 }
