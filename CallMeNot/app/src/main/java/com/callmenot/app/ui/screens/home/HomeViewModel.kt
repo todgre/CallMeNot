@@ -19,9 +19,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeUiState(
+    val isLoading: Boolean = true,
     val isBlockingEnabled: Boolean = true,
     val subscriptionStatus: SubscriptionStatus = SubscriptionStatus.Loading,
-    val trialDaysRemaining: Int = 0,
+    val trialDaysRemaining: Int = 7,
     val blockedToday: Int = 0,
     val allowedToday: Int = 0,
     val whitelistCount: Int = 0,
@@ -51,6 +52,7 @@ class HomeViewModel @Inject constructor(
             val trialDays = settingsRepository.getTrialDaysRemaining()
             val permStatus = permissionHelper.getPermissionStatus()
             _uiState.value = _uiState.value.copy(
+                isLoading = false,
                 trialDaysRemaining = trialDays,
                 permissionStatus = permStatus
             )
