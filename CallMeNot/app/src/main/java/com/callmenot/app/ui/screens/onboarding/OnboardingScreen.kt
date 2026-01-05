@@ -367,8 +367,8 @@ private fun PermissionsPage(
         Spacer(modifier = Modifier.height(12.dp))
         
         PermissionCard(
-            title = "Background Running",
-            description = "Keeps call protection active at all times",
+            title = "Battery Exception",
+            description = "Allows call blocking to stay active. Uses minimal battery.",
             isGranted = permissionStatus.isBatteryOptimizationIgnored,
             onRequest = onRequestBatteryOptimization
         )
