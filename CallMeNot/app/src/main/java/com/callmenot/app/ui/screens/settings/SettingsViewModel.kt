@@ -99,14 +99,16 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.allowAllContacts,
                 settingsRepository.blockUnknownNumbers,
                 settingsRepository.emergencyBypassEnabled,
+                settingsRepository.emergencyBypassMinutes,
                 settingsRepository.allowRecentOutgoing
-            ) { starred, allContacts, blockUnknown, emergencyBypass, recentOutgoing ->
+            ) { values ->
                 _uiState.value.copy(
-                    allowStarredContacts = starred,
-                    allowAllContacts = allContacts,
-                    blockUnknownNumbers = blockUnknown,
-                    emergencyBypassEnabled = emergencyBypass,
-                    allowRecentOutgoing = recentOutgoing
+                    allowStarredContacts = values[0] as Boolean,
+                    allowAllContacts = values[1] as Boolean,
+                    blockUnknownNumbers = values[2] as Boolean,
+                    emergencyBypassEnabled = values[3] as Boolean,
+                    emergencyBypassMinutes = values[4] as Int,
+                    allowRecentOutgoing = values[5] as Boolean
                 )
             }.collect { newState ->
                 _uiState.value = newState
@@ -262,6 +264,13 @@ class SettingsViewModel @Inject constructor(
     fun setEmergencyBypassEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setEmergencyBypassEnabled(enabled)
+        }
+    }
+
+    fun setEmergencyBypassMinutes(minutes: Int) {
+        val clampedMinutes = minutes.coerceIn(1, 60)
+        viewModelScope.launch {
+            settingsRepository.setEmergencyBypassMinutes(clampedMinutes)
         }
     }
 

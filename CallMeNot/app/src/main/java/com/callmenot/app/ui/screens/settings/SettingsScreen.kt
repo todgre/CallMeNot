@@ -125,11 +125,11 @@ fun SettingsScreen(
             
             HorizontalDivider()
 
-            SettingsToggle(
-                title = "Emergency Bypass",
-                description = "Allow if same number calls twice in 3 minutes",
-                checked = uiState.emergencyBypassEnabled,
-                onCheckedChange = { viewModel.setEmergencyBypassEnabled(it) }
+            EmergencyBypassSetting(
+                enabled = uiState.emergencyBypassEnabled,
+                minutes = uiState.emergencyBypassMinutes,
+                onEnabledChange = { viewModel.setEmergencyBypassEnabled(it) },
+                onMinutesChange = { viewModel.setEmergencyBypassMinutes(it) }
             )
             
             HorizontalDivider()
@@ -370,6 +370,129 @@ private fun SettingsToggle(
             onCheckedChange = onCheckedChange
         )
     }
+}
+
+@Composable
+private fun EmergencyBypassSetting(
+    enabled: Boolean,
+    minutes: Int,
+    onEnabledChange: (Boolean) -> Unit,
+    onMinutesChange: (Int) -> Unit
+) {
+    var showTimeDialog by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Emergency Bypass",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Allow if same number calls twice in $minutes minute${if (minutes > 1) "s" else ""}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Switch(
+                checked = enabled,
+                onCheckedChange = onEnabledChange
+            )
+        }
+        
+        if (enabled) {
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { showTimeDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Change time window: $minutes minute${if (minutes > 1) "s" else ""}")
+            }
+        }
+    }
+    
+    if (showTimeDialog) {
+        TimeWindowDialog(
+            currentMinutes = minutes,
+            onConfirm = { 
+                onMinutesChange(it)
+                showTimeDialog = false
+            },
+            onDismiss = { showTimeDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun TimeWindowDialog(
+    currentMinutes: Int,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var inputValue by remember { mutableStateOf(currentMinutes.toString()) }
+    var isError by remember { mutableStateOf(false) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Emergency Bypass Time Window") },
+        text = {
+            Column {
+                Text(
+                    text = "Set how long someone has to call back a second time to bypass blocking.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = inputValue,
+                    onValueChange = { 
+                        inputValue = it.filter { char -> char.isDigit() }
+                        val parsed = inputValue.toIntOrNull()
+                        isError = parsed == null || parsed < 1 || parsed > 60
+                    },
+                    label = { Text("Minutes (1-60)") },
+                    isError = isError,
+                    supportingText = if (isError) {
+                        { Text("Enter a number between 1 and 60") }
+                    } else null,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Common choices: 3 min (default), 5 min (relaxed), 10 min (generous)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val parsed = inputValue.toIntOrNull()
+                    if (parsed != null && parsed in 1..60) {
+                        onConfirm(parsed)
+                    }
+                },
+                enabled = !isError && inputValue.isNotEmpty()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
