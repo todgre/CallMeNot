@@ -118,13 +118,21 @@ class SettingsRepository @Inject constructor(
     }
     
     suspend fun getTrialDaysRemaining(): Int {
-        val startDate = context.dataStore.data.first()[Keys.TRIAL_START_DATE] ?: return 0
+        val startDate = context.dataStore.data.first()[Keys.TRIAL_START_DATE]
+        if (startDate == null) {
+            // Trial hasn't started yet (or just starting) - return full 7 days
+            return 7
+        }
         val elapsed = System.currentTimeMillis() - startDate
         val daysElapsed = (elapsed / (24 * 60 * 60 * 1000)).toInt()
         return maxOf(0, 7 - daysElapsed)
     }
     
-    suspend fun isTrialActive(): Boolean = getTrialDaysRemaining() > 0
+    suspend fun isTrialActive(): Boolean {
+        // Trial is active if days remaining > 0
+        // This handles the case where trial hasn't started yet (returns true with 7 days)
+        return getTrialDaysRemaining() > 0
+    }
     
     suspend fun setUserId(userId: String?) {
         context.dataStore.edit { 
