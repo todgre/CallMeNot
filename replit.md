@@ -81,6 +81,7 @@ Before building for production:
 
 ## Recent Changes (January 2026)
 
+- **Battery Optimization in Onboarding**: Moved battery exemption request from Settings to required onboarding permission (third card after Call Screening and Contacts/Call Log). Users must grant all three permissions before reaching trial page. This prevents call blocking failures that could lead to bad reviews.
 - **Fixed Red Flash on App Launch**: Fixed race condition where trial status briefly showed as "expired" during onboarding→home transition. The issue was that navigation happened before trial start date was persisted. Now getTrialDaysRemaining() returns 7 days when date is null (trial just starting), and HomeScreen shows a loading spinner until data is ready.
 - **Configurable Emergency Bypass**: Users can now set the emergency bypass time window from 1-60 minutes (default 3) via dialog in Settings
 - **Notification Bug Fix**: Service now properly starts/stops based on protection toggle, checks saved state on device boot
