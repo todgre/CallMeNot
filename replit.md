@@ -79,9 +79,18 @@ Before building for production:
 2. **Google Play Billing**: Set up subscription products in Play Console
 3. **Signing**: Create release keystore for Play Store distribution
 
+## Recent Changes (January 2026)
+
+- **Notification Bug Fix**: Service now properly starts/stops based on protection toggle, checks saved state on device boot
+- **Call Log Filtering**: Added time period filter (Today, 1 Week, 1 Month, 1 Year, All Time) with dropdown UI
+- **Optional Firebase**: App works fully locally without account; cloud sync is clearly marked as optional in Settings
+- **What's New Dialog**: Shows changelog after app updates, tracks last seen version in DataStore
+- **App Icon**: Clean shield with checkmark design representing call protection
+
 ## Current State
 
 - All core code is generated and complete
-- Requires Firebase configuration (google-services.json)
+- Requires Firebase configuration (google-services.json) for cloud sync only
+- App works fully offline without Firebase account
 - Requires real device testing for call screening functionality
 - Unit tests included for rules engine logic
