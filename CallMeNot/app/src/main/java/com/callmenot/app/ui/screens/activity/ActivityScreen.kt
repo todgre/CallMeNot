@@ -48,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.callmenot.app.data.local.entity.CallAction
 import com.callmenot.app.data.local.entity.CallEvent
 import com.callmenot.app.data.local.entity.CallReason
+import com.callmenot.app.data.repository.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -98,6 +99,13 @@ fun ActivityScreen(
             )
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        TimePeriodFilter(
+            selectedPeriod = uiState.timePeriod,
+            onPeriodSelected = { viewModel.setTimePeriod(it) }
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         if (uiState.events.isEmpty()) {
@@ -116,6 +124,44 @@ fun ActivityScreen(
                         onRemoveFromBlacklist = { viewModel.removeFromBlacklist(event) }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimePeriodFilter(
+    selectedPeriod: TimePeriod,
+    onPeriodSelected: (TimePeriod) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Time: ",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FilterChip(
+            selected = true,
+            onClick = { expanded = true },
+            label = { Text(selectedPeriod.label) }
+        )
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            TimePeriod.entries.forEach { period ->
+                DropdownMenuItem(
+                    text = { Text(period.label) },
+                    onClick = {
+                        onPeriodSelected(period)
+                        expanded = false
+                    }
+                )
             }
         }
     }

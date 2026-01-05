@@ -28,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import com.callmenot.app.service.ProtectionNotificationService
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +46,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     
     Column(
         modifier = Modifier
@@ -60,7 +63,14 @@ fun HomeScreen(
         
         ProtectionStatusCard(
             uiState = uiState,
-            onToggleBlocking = { viewModel.toggleBlocking(it) },
+            onToggleBlocking = { enabled ->
+                viewModel.toggleBlocking(enabled)
+                if (enabled) {
+                    ProtectionNotificationService.start(context)
+                } else {
+                    ProtectionNotificationService.stop(context)
+                }
+            },
             onNavigateToPaywall = onNavigateToPaywall
         )
         

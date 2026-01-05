@@ -40,6 +40,7 @@ class SettingsRepository @Inject constructor(
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val TRIAL_START_DATE = longPreferencesKey("trial_start_date")
         val USER_ID = stringPreferencesKey("user_id")
+        val LAST_SEEN_VERSION = stringPreferencesKey("last_seen_version")
     }
     
     val blockingEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.BLOCKING_ENABLED] ?: true }
@@ -136,6 +137,12 @@ class SettingsRepository @Inject constructor(
     }
     
     suspend fun getUserId(): String? = context.dataStore.data.first()[Keys.USER_ID]
+    
+    suspend fun getLastSeenVersion(): String? = context.dataStore.data.first()[Keys.LAST_SEEN_VERSION]
+    
+    suspend fun setLastSeenVersion(version: String) {
+        context.dataStore.edit { it[Keys.LAST_SEEN_VERSION] = version }
+    }
     
     suspend fun getSettingsSnapshot(): SettingsSnapshot {
         val prefs = context.dataStore.data.first()

@@ -40,4 +40,10 @@ interface CallEventDao {
     
     @Query("DELETE FROM call_events")
     suspend fun deleteAll()
+    
+    @Query("SELECT * FROM call_events WHERE timestamp >= :sinceTimestamp ORDER BY timestamp DESC")
+    fun getEventsSince(sinceTimestamp: Long): Flow<List<CallEvent>>
+    
+    @Query("SELECT * FROM call_events WHERE action = :action AND timestamp >= :sinceTimestamp ORDER BY timestamp DESC")
+    fun getEventsByActionSince(action: CallAction, sinceTimestamp: Long): Flow<List<CallEvent>>
 }

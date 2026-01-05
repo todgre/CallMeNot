@@ -10,6 +10,14 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+enum class TimePeriod(val label: String, val daysBack: Int?) {
+    TODAY("Today", 0),
+    WEEK("1 Week", 7),
+    MONTH("1 Month", 30),
+    YEAR("1 Year", 365),
+    ALL_TIME("All Time", null)
+}
+
 @Singleton
 class CallEventRepository @Inject constructor(
     private val callEventDao: CallEventDao
@@ -17,6 +25,22 @@ class CallEventRepository @Inject constructor(
     fun getAllEvents(): Flow<List<CallEvent>> = callEventDao.getAllEvents()
     
     fun getRecentEvents(limit: Int = 50): Flow<List<CallEvent>> = callEventDao.getRecentEvents(limit)
+    
+    fun getEventsForPeriod(period: TimePeriod, action: CallAction? = null): Flow<List<CallEvent>> {
+        val sinceTimestamp = when (period) {
+            TimePeriod.TODAY -> getTodayBounds().first
+            TimePeriod.WEEK -> System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
+            TimePeriod.MONTH -> System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000L)
+            TimePeriod.YEAR -> System.currentTimeMillis() - (365L * 24 * 60 * 60 * 1000L)
+            TimePeriod.ALL_TIME -> 0L
+        }
+        
+        return if (action != null) {
+            callEventDao.getEventsByActionSince(action, sinceTimestamp)
+        } else {
+            callEventDao.getEventsSince(sinceTimestamp)
+        }
+    }
     
     fun getTodayBlockedCount(): Flow<Int> {
         val (start, end) = getTodayBounds()

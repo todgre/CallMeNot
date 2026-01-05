@@ -6,8 +6,10 @@ import com.callmenot.app.data.local.entity.CallAction
 import com.callmenot.app.data.local.entity.CallEvent
 import com.callmenot.app.data.repository.BlacklistRepository
 import com.callmenot.app.data.repository.CallEventRepository
+import com.callmenot.app.data.repository.TimePeriod
 import com.callmenot.app.data.repository.WhitelistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +19,7 @@ import javax.inject.Inject
 data class ActivityUiState(
     val events: List<CallEvent> = emptyList(),
     val filter: CallAction? = null,
+    val timePeriod: TimePeriod = TimePeriod.TODAY,
     val isLoading: Boolean = false
 )
 
@@ -29,24 +32,32 @@ class ActivityViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ActivityUiState())
     val uiState: StateFlow<ActivityUiState> = _uiState.asStateFlow()
+    
+    private var observeJob: Job? = null
 
     init {
         observeEvents()
     }
 
     private fun observeEvents() {
-        viewModelScope.launch {
-            callEventRepository.getRecentEvents(100).collect { events ->
-                val filtered = _uiState.value.filter?.let { filter ->
-                    events.filter { it.action == filter }
-                } ?: events
-                _uiState.value = _uiState.value.copy(events = filtered)
+        observeJob?.cancel()
+        observeJob = viewModelScope.launch {
+            callEventRepository.getEventsForPeriod(
+                period = _uiState.value.timePeriod,
+                action = _uiState.value.filter
+            ).collect { events ->
+                _uiState.value = _uiState.value.copy(events = events)
             }
         }
     }
 
     fun setFilter(filter: CallAction?) {
         _uiState.value = _uiState.value.copy(filter = filter)
+        observeEvents()
+    }
+    
+    fun setTimePeriod(period: TimePeriod) {
+        _uiState.value = _uiState.value.copy(timePeriod = period)
         observeEvents()
     }
     

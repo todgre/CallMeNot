@@ -144,7 +144,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsSection(title = "Account") {
+        SettingsSection(title = "Subscription") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -153,7 +153,7 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Subscription",
+                        text = "Status",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -185,9 +185,11 @@ fun SettingsScreen(
                     }
                 }
             }
+        }
 
-            HorizontalDivider()
+        Spacer(modifier = Modifier.height(16.dp))
 
+        SettingsSection(title = "Cloud Sync (Optional)") {
             if (uiState.userEmail != null) {
                 Row(
                     modifier = Modifier
@@ -197,7 +199,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Signed in as",
+                            text = "Signed in",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
@@ -205,11 +207,38 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Text(
+                            text = "Your whitelist syncs across devices",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
                     }
 
                     TextButton(onClick = { viewModel.signOut() }) {
                         Text("Sign Out")
                     }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Not signed in",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Sign in to sync your whitelist and settings across devices. Your data stays on this device until you sign in.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "The app works fully without an account.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
                 }
             }
         }
