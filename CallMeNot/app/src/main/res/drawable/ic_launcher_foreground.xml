@@ -4,18 +4,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group android:scaleX="0.4"
-        android:scaleY="0.4"
-        android:translateX="32.4"
-        android:translateY="32.4">
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M54,27C39.09,27 27,39.09 27,54C27,68.91 39.09,81 54,81C68.91,81 81,68.91 81,54C81,39.09 68.91,27 54,27ZM54,75.6C42.07,75.6 32.4,65.93 32.4,54C32.4,42.07 42.07,32.4 54,32.4C65.93,32.4 75.6,42.07 75.6,54C75.6,65.93 65.93,75.6 54,75.6Z"/>
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M54,40.5C46.55,40.5 40.5,46.55 40.5,54C40.5,61.45 46.55,67.5 54,67.5C61.45,67.5 67.5,61.45 67.5,54C67.5,46.55 61.45,40.5 54,40.5ZM54,62.1C49.52,62.1 45.9,58.48 45.9,54C45.9,49.52 49.52,45.9 54,45.9C58.48,45.9 62.1,49.52 62.1,54C62.1,58.48 58.48,62.1 54,62.1Z"/>
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M72.9,35.1L72.9,35.1C71.82,34.02 70.07,34.02 68.99,35.1L35.1,68.99C34.02,70.07 34.02,71.82 35.1,72.9L35.1,72.9C36.18,73.98 37.93,73.98 39.01,72.9L72.9,39.01C73.98,37.93 73.98,36.18 72.9,35.1Z"/>
-    </group>
+    <!-- Shield shape - centered in adaptive icon safe zone -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,22L28,33V51C28,68.1 39.08,83.7 54,88C68.92,83.7 80,68.1 80,51V33L54,22Z"/>
+    <!-- Checkmark inside shield -->
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M48,62L38,52L42,48L48,54L66,36L70,40L48,62Z"/>
 </vector>

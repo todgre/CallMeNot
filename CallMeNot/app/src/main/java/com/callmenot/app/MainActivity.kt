@@ -51,16 +51,16 @@ class MainActivity : ComponentActivity() {
             var hasCheckedVersion by remember { mutableStateOf(false) }
             
             LaunchedEffect(Unit) {
-                withContext(Dispatchers.IO) {
-                    val lastSeen = settingsRepository.getLastSeenVersion()
-                    val currentVersion = Changelog.latestVersion
-                    
-                    if (lastSeen != currentVersion) {
-                        lastSeenVersion = lastSeen
-                        showWhatsNew = true
-                    }
-                    hasCheckedVersion = true
+                val lastSeen = withContext(Dispatchers.IO) {
+                    settingsRepository.getLastSeenVersion()
                 }
+                val currentVersion = Changelog.latestVersion
+                
+                if (lastSeen != currentVersion) {
+                    lastSeenVersion = lastSeen
+                    showWhatsNew = true
+                }
+                hasCheckedVersion = true
             }
             
             CallMeNotTheme {
