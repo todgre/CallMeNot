@@ -15,14 +15,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,10 +35,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,8 +64,21 @@ fun WhitelistScreen(
     val contacts by viewModel.contacts.collectAsState()
     var showInfoDialog by remember { mutableStateOf(false) }
     var entryToDelete by remember { mutableStateOf<WhitelistEntry?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(uiState.lastAddedEntry) {
+        uiState.lastAddedEntry?.let { entry ->
+            if (entry.matchedContact != null) {
+                snackbarHostState.showSnackbar(
+                    message = "Added ${entry.displayName} - matched to existing contact!"
+                )
+            }
+            viewModel.clearLastAddedEntry()
+        }
+    }
     
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { viewModel.showAddDialog() }
@@ -142,8 +160,12 @@ fun WhitelistScreen(
     if (uiState.showContactPicker) {
         ContactPickerSheet(
             contacts = contacts,
+            selectedContactIds = uiState.selectedContacts,
             onDismiss = { viewModel.hideContactPicker() },
-            onSelectContact = { viewModel.addFromContact(it) }
+            onToggleContact = { viewModel.toggleContactSelection(it) },
+            onAddSelected = { viewModel.addSelectedContacts() },
+            onSelectAll = { viewModel.selectAllContacts() },
+            onClearSelection = { viewModel.clearContactSelection() }
         )
     }
     
@@ -376,8 +398,12 @@ private fun AddWhitelistDialog(
 @Composable
 private fun ContactPickerSheet(
     contacts: List<ContactsHelper.Contact>,
+    selectedContactIds: Set<String>,
     onDismiss: () -> Unit,
-    onSelectContact: (ContactsHelper.Contact) -> Unit
+    onToggleContact: (String) -> Unit,
+    onAddSelected: () -> Unit,
+    onSelectAll: () -> Unit,
+    onClearSelection: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     var searchQuery by remember { mutableStateOf("") }
@@ -400,13 +426,43 @@ private fun ContactPickerSheet(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = "Select Contact",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Contacts",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                if (selectedContactIds.isNotEmpty()) {
+                    Text(
+                        text = "${selectedContactIds.size} selected",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(onClick = onSelectAll) {
+                    Text("Select All")
+                }
+                if (selectedContactIds.isNotEmpty()) {
+                    TextButton(onClick = onClearSelection) {
+                        Text("Clear")
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
             
             OutlinedTextField(
                 value = searchQuery,
@@ -421,20 +477,42 @@ private fun ContactPickerSheet(
             
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(bottom = 32.dp)
+                contentPadding = PaddingValues(bottom = 100.dp),
+                modifier = Modifier.weight(1f)
             ) {
                 items(filteredContacts) { contact ->
+                    val isSelected = contact.id in selectedContactIds
                     Card(
-                        onClick = { onSelectContact(contact) },
-                        modifier = Modifier.fillMaxWidth()
+                        onClick = { onToggleContact(contact.id) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected)
+                                MaterialTheme.colorScheme.primaryContainer
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant
+                        )
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(
+                                imageVector = if (isSelected) 
+                                    Icons.Default.CheckCircle 
+                                else 
+                                    Icons.Default.RadioButtonUnchecked,
+                                contentDescription = if (isSelected) "Selected" else "Not selected",
+                                tint = if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
                             Icon(Icons.Default.Person, contentDescription = null)
                             Spacer(modifier = Modifier.width(12.dp))
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = contact.name,
                                     style = MaterialTheme.typography.titleMedium
@@ -449,6 +527,18 @@ private fun ContactPickerSheet(
                     }
                 }
             }
+            
+            if (selectedContactIds.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onAddSelected,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Add ${selectedContactIds.size} Contact${if (selectedContactIds.size > 1) "s" else ""}")
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

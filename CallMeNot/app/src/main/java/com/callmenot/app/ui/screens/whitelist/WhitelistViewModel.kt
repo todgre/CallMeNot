@@ -20,7 +20,15 @@ data class WhitelistUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val showAddDialog: Boolean = false,
-    val showContactPicker: Boolean = false
+    val showContactPicker: Boolean = false,
+    val selectedContacts: Set<String> = emptySet(),
+    val lastAddedEntry: AddedEntryInfo? = null
+)
+
+data class AddedEntryInfo(
+    val phoneNumber: String,
+    val displayName: String,
+    val matchedContact: ContactsHelper.Contact? = null
 )
 
 @HiltViewModel
@@ -63,6 +71,7 @@ class WhitelistViewModel @Inject constructor(
 
     fun showAddDialog() {
         _uiState.value = _uiState.value.copy(showAddDialog = true)
+        loadContacts()
     }
 
     fun hideAddDialog() {
@@ -75,7 +84,10 @@ class WhitelistViewModel @Inject constructor(
     }
 
     fun hideContactPicker() {
-        _uiState.value = _uiState.value.copy(showContactPicker = false)
+        _uiState.value = _uiState.value.copy(
+            showContactPicker = false,
+            selectedContacts = emptySet()
+        )
     }
 
     private fun loadContacts() {
@@ -84,16 +96,87 @@ class WhitelistViewModel @Inject constructor(
         }
     }
 
+    fun toggleContactSelection(contactId: String) {
+        val currentSelected = _uiState.value.selectedContacts
+        _uiState.value = _uiState.value.copy(
+            selectedContacts = if (contactId in currentSelected) {
+                currentSelected - contactId
+            } else {
+                currentSelected + contactId
+            }
+        )
+    }
+
+    fun selectAllContacts() {
+        _uiState.value = _uiState.value.copy(
+            selectedContacts = _contacts.value.map { it.id }.toSet()
+        )
+    }
+
+    fun clearContactSelection() {
+        _uiState.value = _uiState.value.copy(selectedContacts = emptySet())
+    }
+
+    fun addSelectedContacts() {
+        viewModelScope.launch {
+            val selectedIds = _uiState.value.selectedContacts
+            val contactsToAdd = _contacts.value.filter { it.id in selectedIds }
+            
+            contactsToAdd.forEach { contact ->
+                contact.phoneNumbers.forEach { number ->
+                    whitelistRepository.addEntry(
+                        displayName = contact.name,
+                        phoneNumber = number,
+                        contactId = contact.id
+                    )
+                }
+            }
+            hideContactPicker()
+        }
+    }
+
     fun addManualNumber(name: String, phoneNumber: String) {
         viewModelScope.launch {
             if (phoneNumberUtil.isValidNumber(phoneNumber)) {
+                val normalizedNumber = phoneNumberUtil.normalizeNumber(phoneNumber)
+                val matchedContact = findContactByNumber(normalizedNumber)
+                
+                val displayName = when {
+                    name.isNotBlank() -> name
+                    matchedContact != null -> matchedContact.name
+                    else -> phoneNumber
+                }
+                
                 whitelistRepository.addEntry(
-                    displayName = name.ifBlank { phoneNumber },
-                    phoneNumber = phoneNumber
+                    displayName = displayName,
+                    phoneNumber = phoneNumber,
+                    contactId = matchedContact?.id
                 )
+                
+                _uiState.value = _uiState.value.copy(
+                    lastAddedEntry = AddedEntryInfo(
+                        phoneNumber = phoneNumber,
+                        displayName = displayName,
+                        matchedContact = matchedContact
+                    )
+                )
+                
                 hideAddDialog()
             }
         }
+    }
+
+    private fun findContactByNumber(phoneNumber: String): ContactsHelper.Contact? {
+        val normalizedInput = phoneNumberUtil.normalizeNumber(phoneNumber)
+        return _contacts.value.find { contact ->
+            contact.phoneNumbers.any { number ->
+                phoneNumberUtil.numbersMatch(normalizedInput, number)
+            }
+        }
+    }
+
+    fun clearLastAddedEntry() {
+        _uiState.value = _uiState.value.copy(lastAddedEntry = null)
     }
 
     fun addFromContact(contact: ContactsHelper.Contact) {
