@@ -101,14 +101,14 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.emergencyBypassEnabled,
                 settingsRepository.emergencyBypassMinutes,
                 settingsRepository.allowRecentOutgoing
-            ) { values ->
+            ) { starred, allContacts, blockUnknown, emergencyEnabled, emergencyMinutes, recentOutgoing ->
                 _uiState.value.copy(
-                    allowStarredContacts = values[0] as Boolean,
-                    allowAllContacts = values[1] as Boolean,
-                    blockUnknownNumbers = values[2] as Boolean,
-                    emergencyBypassEnabled = values[3] as Boolean,
-                    emergencyBypassMinutes = values[4] as Int,
-                    allowRecentOutgoing = values[5] as Boolean
+                    allowStarredContacts = starred,
+                    allowAllContacts = allContacts,
+                    blockUnknownNumbers = blockUnknown,
+                    emergencyBypassEnabled = emergencyEnabled,
+                    emergencyBypassMinutes = emergencyMinutes,
+                    allowRecentOutgoing = recentOutgoing
                 )
             }.collect { newState ->
                 _uiState.value = newState
