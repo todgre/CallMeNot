@@ -50,4 +50,12 @@ class PhoneNumberUtil @Inject constructor(
     }
     
     fun getCountryCode(): String = defaultCountryCode
+    
+    fun normalizeNumber(phoneNumber: String): String = normalize(phoneNumber)
+    
+    fun numbersMatch(number1: String, number2: String): Boolean {
+        val normalized1 = normalize(number1)
+        val normalized2 = normalize(number2)
+        return normalized1 == normalized2
+    }
 }

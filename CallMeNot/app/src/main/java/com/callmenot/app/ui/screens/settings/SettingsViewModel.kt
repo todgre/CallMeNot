@@ -33,6 +33,14 @@ data class BlockedContactItem(
     val phoneNumber: String
 )
 
+private data class SettingsGroup1(
+    val starred: Boolean,
+    val allContacts: Boolean,
+    val blockUnknown: Boolean,
+    val emergencyEnabled: Boolean,
+    val emergencyMinutes: Int
+)
+
 data class SettingsUiState(
     val allowStarredContacts: Boolean = true,
     val allowAllContacts: Boolean = false,
@@ -99,15 +107,16 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.allowAllContacts,
                 settingsRepository.blockUnknownNumbers,
                 settingsRepository.emergencyBypassEnabled,
-                settingsRepository.emergencyBypassMinutes,
-                settingsRepository.allowRecentOutgoing
-            ) { starred, allContacts, blockUnknown, emergencyEnabled, emergencyMinutes, recentOutgoing ->
+                settingsRepository.emergencyBypassMinutes
+            ) { starred, allContacts, blockUnknown, emergencyEnabled, emergencyMinutes ->
+                SettingsGroup1(starred, allContacts, blockUnknown, emergencyEnabled, emergencyMinutes)
+            }.combine(settingsRepository.allowRecentOutgoing) { group1, recentOutgoing ->
                 _uiState.value.copy(
-                    allowStarredContacts = starred,
-                    allowAllContacts = allContacts,
-                    blockUnknownNumbers = blockUnknown,
-                    emergencyBypassEnabled = emergencyEnabled,
-                    emergencyBypassMinutes = emergencyMinutes,
+                    allowStarredContacts = group1.starred,
+                    allowAllContacts = group1.allContacts,
+                    blockUnknownNumbers = group1.blockUnknown,
+                    emergencyBypassEnabled = group1.emergencyEnabled,
+                    emergencyBypassMinutes = group1.emergencyMinutes,
                     allowRecentOutgoing = recentOutgoing
                 )
             }.collect { newState ->
