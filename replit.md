@@ -81,6 +81,7 @@ Before building for production:
 
 ## Recent Changes (January 2026)
 
+- **Configurable Emergency Bypass**: Users can now set the emergency bypass time window from 1-60 minutes (default 3) via dialog in Settings
 - **Notification Bug Fix**: Service now properly starts/stops based on protection toggle, checks saved state on device boot
 - **Call Log Filtering**: Added time period filter (Today, 1 Week, 1 Month, 1 Year, All Time) with dropdown UI
 - **Optional Firebase**: App works fully locally without account; cloud sync is optional for backing up settings and syncing whitelist across devices
