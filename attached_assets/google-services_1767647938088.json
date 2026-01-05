@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "523300441756",
+    "project_id": "callmenot-e25a9",
+    "storage_bucket": "callmenot-e25a9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523300441756:android:72dea60e01d5ba79eda759",
+        "android_client_info": {
+          "package_name": "com.callmenot.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO5B1DY6n5i6pbff5BkyjsARpqP8Q20L4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
