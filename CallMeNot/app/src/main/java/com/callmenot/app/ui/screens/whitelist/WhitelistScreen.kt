@@ -151,9 +151,13 @@ fun WhitelistScreen(
     
     if (uiState.showAddDialog) {
         AddWhitelistDialog(
-            onDismiss = { viewModel.hideAddDialog() },
+            onDismiss = { 
+                viewModel.clearAddError()
+                viewModel.hideAddDialog() 
+            },
             onAddManual = { name, number -> viewModel.addManualNumber(name, number) },
-            onPickFromContacts = { viewModel.showContactPicker() }
+            onPickFromContacts = { viewModel.showContactPicker() },
+            errorMessage = uiState.addError
         )
     }
     
@@ -328,7 +332,8 @@ private fun WhitelistEntryCard(
 private fun AddWhitelistDialog(
     onDismiss: () -> Unit,
     onAddManual: (name: String, number: String) -> Unit,
-    onPickFromContacts: () -> Unit
+    onPickFromContacts: () -> Unit,
+    errorMessage: String? = null
 ) {
     var name by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
@@ -374,8 +379,18 @@ private fun AddWhitelistDialog(
                     onValueChange = { phoneNumber = it },
                     label = { Text("Phone Number") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorMessage != null
                 )
+                
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {

@@ -41,6 +41,10 @@ class PhoneNumberUtil @Inject constructor(
     }
     
     fun isValidNumber(phoneNumber: String): Boolean {
+        val digitsOnly = phoneNumber.filter { it.isDigit() }
+        if (digitsOnly.length >= 7) {
+            return true
+        }
         return try {
             val parsed = phoneNumberUtil.parse(phoneNumber, defaultCountryCode)
             phoneNumberUtil.isValidNumber(parsed)

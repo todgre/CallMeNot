@@ -22,7 +22,8 @@ data class WhitelistUiState(
     val showAddDialog: Boolean = false,
     val showContactPicker: Boolean = false,
     val selectedContacts: Set<String> = emptySet(),
-    val lastAddedEntry: AddedEntryInfo? = null
+    val lastAddedEntry: AddedEntryInfo? = null,
+    val addError: String? = null
 )
 
 data class AddedEntryInfo(
@@ -158,12 +159,21 @@ class WhitelistViewModel @Inject constructor(
                         phoneNumber = phoneNumber,
                         displayName = displayName,
                         matchedContact = matchedContact
-                    )
+                    ),
+                    addError = null
                 )
                 
                 hideAddDialog()
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    addError = "Please enter a valid phone number (at least 7 digits)"
+                )
             }
         }
+    }
+    
+    fun clearAddError() {
+        _uiState.value = _uiState.value.copy(addError = null)
     }
 
     private fun findContactByNumber(phoneNumber: String): ContactsHelper.Contact? {
