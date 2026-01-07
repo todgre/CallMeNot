@@ -23,3 +23,7 @@ args = "echo \"=== CallMeNot - Native Android App ===\" && echo \"\" && echo \"T
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[nix]
+channel = "stable-25_05"
+packages = ["imagemagick"]
