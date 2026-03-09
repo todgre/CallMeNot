@@ -12,6 +12,7 @@ import com.callmenot.app.domain.usecase.EvaluateCallUseCase
 import com.callmenot.app.util.ContactsHelper
 import com.callmenot.app.util.PhoneNumberUtil
 import android.util.Log
+import com.callmenot.app.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -47,8 +48,7 @@ class CallMeNotScreeningService : CallScreeningService() {
     override fun onScreenCall(callDetails: Call.Details) {
         val response = runBlocking {
             try {
-                val phoneNumber = callDetails.handle?.schemeSpecificPart
-                Log.d(TAG, "Processing incoming call: $phoneNumber")
+                if (BuildConfig.DEBUG) Log.d(TAG, "Processing incoming call")
                 processCall(callDetails)
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing call, allowing by default", e)
@@ -117,16 +117,14 @@ class CallMeNotScreeningService : CallScreeningService() {
     }
 
     private fun buildResponse(decision: CallScreeningDecision): CallResponse {
-        Log.d(TAG, "Building response: shouldAllow=${decision.shouldAllow}, reason=${decision.reason}")
+        if (BuildConfig.DEBUG) Log.d(TAG, "Decision: shouldAllow=${decision.shouldAllow}, reason=${decision.reason}")
         return if (decision.shouldAllow) {
-            Log.d(TAG, "ALLOWING call")
             CallResponse.Builder()
                 .setDisallowCall(false)
                 .setSkipCallLog(false)
                 .setSkipNotification(false)
                 .build()
         } else {
-            Log.d(TAG, "BLOCKING call")
             CallResponse.Builder()
                 .setDisallowCall(true)
                 .setRejectCall(true)

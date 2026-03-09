@@ -13,6 +13,7 @@ class FirestoreService @Inject constructor() {
     
     companion object {
         private const val TAG = "FirestoreService"
+        private const val MAX_BATCH_SIZE = 499
     }
     
     private val firestore: FirebaseFirestore? by lazy { 
@@ -31,19 +32,41 @@ class FirestoreService @Inject constructor() {
     private fun whitelistCollection(userId: String) = userCollection(userId)?.collection("whitelist")
     private fun settingsDocument(userId: String) = userCollection(userId)?.collection("settings")?.document("preferences")
     
-    suspend fun syncWhitelist(userId: String, entries: List<WhitelistEntry>) {
-        val fs = firestore ?: return
+    suspend fun syncWhitelist(userId: String, entries: List<WhitelistEntry>): Boolean {
+        val fs = firestore ?: return false
         try {
-            val batch = fs.batch()
+            val cloudSnapshot = whitelistCollection(userId)?.get()?.await()
+            val cloudIds = cloudSnapshot?.documents?.map { it.id }?.toSet() ?: emptySet()
+            val localIds = entries.map { it.id }.toSet()
+            val toDelete = cloudIds - localIds
+
+            data class BatchOp(val type: String, val id: String, val entry: WhitelistEntry? = null)
             
-            entries.forEach { entry ->
-                val docRef = whitelistCollection(userId)?.document(entry.id) ?: return@forEach
-                batch.set(docRef, entry.toMap(), SetOptions.merge())
+            val operations = mutableListOf<BatchOp>()
+            entries.forEach { entry -> operations.add(BatchOp("set", entry.id, entry)) }
+            toDelete.forEach { id -> operations.add(BatchOp("delete", id)) }
+            
+            val chunks = operations.chunked(MAX_BATCH_SIZE)
+            for (chunk in chunks) {
+                val batch = fs.batch()
+                for (op in chunk) {
+                    when (op.type) {
+                        "set" -> {
+                            val docRef = whitelistCollection(userId)?.document(op.id) ?: continue
+                            batch.set(docRef, op.entry!!.toMap(), SetOptions.merge())
+                        }
+                        "delete" -> {
+                            val docRef = whitelistCollection(userId)?.document(op.id) ?: continue
+                            batch.delete(docRef)
+                        }
+                    }
+                }
+                batch.commit().await()
             }
-            
-            batch.commit().await()
+            return true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to sync whitelist", e)
+            return false
         }
     }
     

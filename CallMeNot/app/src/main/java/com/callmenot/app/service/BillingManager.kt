@@ -122,7 +122,7 @@ class BillingManager @Inject constructor(
             val isYearly = validPurchase.products.contains(PRODUCT_YEARLY)
             _subscriptionStatus.value = SubscriptionStatus.Active(
                 isYearly = isYearly,
-                expiryTime = validPurchase.purchaseTime + if (isYearly) 365L * 24 * 60 * 60 * 1000 else 30L * 24 * 60 * 60 * 1000
+                purchaseTime = validPurchase.purchaseTime
             )
         } else {
             _subscriptionStatus.value = SubscriptionStatus.NotSubscribed
@@ -185,6 +185,6 @@ class BillingManager @Inject constructor(
 sealed class SubscriptionStatus {
     object Loading : SubscriptionStatus()
     object NotSubscribed : SubscriptionStatus()
-    data class Active(val isYearly: Boolean, val expiryTime: Long) : SubscriptionStatus()
+    data class Active(val isYearly: Boolean, val purchaseTime: Long) : SubscriptionStatus()
     data class Error(val message: String) : SubscriptionStatus()
 }

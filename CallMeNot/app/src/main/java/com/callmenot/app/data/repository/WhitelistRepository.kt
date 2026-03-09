@@ -94,9 +94,11 @@ class WhitelistRepository @Inject constructor(
     
     suspend fun syncToCloud(userId: String) {
         val entries = whitelistDao.getAllEntriesList()
-        firestoreService.syncWhitelist(userId, entries)
-        entries.forEach { entry ->
-            whitelistDao.markAsSynced(entry.id, System.currentTimeMillis())
+        val success = firestoreService.syncWhitelist(userId, entries)
+        if (success) {
+            entries.forEach { entry ->
+                whitelistDao.markAsSynced(entry.id, System.currentTimeMillis())
+            }
         }
     }
     

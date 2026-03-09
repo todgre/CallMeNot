@@ -27,9 +27,9 @@ class BootReceiver : BroadcastReceiver() {
                     val settings = settingsRepository.getSettingsSnapshot()
                     if (settings.blockingEnabled) {
                         ProtectionNotificationService.start(context)
-                    }
-                    if (SamsungCallBlockerService.isSamsungDevice()) {
-                        SamsungCallBlockerService.start(context)
+                        if (SamsungCallBlockerService.isSamsungDevice()) {
+                            SamsungCallBlockerService.start(context)
+                        }
                     }
                 } finally {
                     pendingResult.finish()
