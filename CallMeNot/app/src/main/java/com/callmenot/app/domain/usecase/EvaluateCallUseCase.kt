@@ -113,7 +113,7 @@ class EvaluateCallUseCase @Inject constructor(
                 normalizedNumber = normalizedNumber,
                 withinMinutes = settings.emergencyBypassMinutes
             )
-            if (recentCallCount >= 2) {
+            if (recentCallCount >= 1) {
                 return CallScreeningDecision(
                     shouldAllow = true,
                     reason = CallReason.EMERGENCY_BYPASS

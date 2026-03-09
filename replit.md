@@ -83,7 +83,7 @@ Before building for production:
 
 - **Critical: Samsung Call Blocker Fixed**: SamsungCallBlockerService was passing null for all call numbers, treating every call as private. Now queries the call log to resolve the incoming number before evaluating. Also runs as a proper foreground service so Android won't kill it.
 - **Billing Expiry Fix**: Removed manual expiry calculation (purchaseTime + 30/365 days) from BillingManager. Google Play manages subscription renewals; the app now just checks purchase state.
-- **Emergency Bypass Hardened**: Changed threshold from 1 to 2 previous calls required before bypass triggers. Previously a spammer calling twice could get through; now requires 3 calls from the same number within the time window.
+- **Emergency Bypass**: Kept at 1 previous call threshold - second call from same number within window triggers bypass, as designed.
 - **Security: Debug Logging Gated**: All phone number and decision logging in CallMeNotScreeningService and SamsungCallBlockerService is now gated behind BuildConfig.DEBUG to prevent leaking sensitive data in production logcat.
 - **BootReceiver Fix**: Samsung call blocker service now only starts on boot when blocking is enabled (was starting regardless of toggle state).
 - **Cloud Sync Deletion Fix**: Firestore sync now properly deletes entries that were removed locally. Previously deleted whitelist entries would reappear when syncing from another device.
