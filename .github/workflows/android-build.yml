@@ -29,14 +29,21 @@ jobs:
 
       - name: Decode release keystore
         run: |
-          mkdir -p CallMeNot/app/keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > CallMeNot/app/keystore/release.keystore
+          mkdir -p $GITHUB_WORKSPACE/CallMeNot/app/keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore
+          echo "KEYSTORE_ABSOLUTE=$GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore" >> $GITHUB_ENV
+
+      - name: Verify keystore exists
+        run: |
+          echo "Keystore path: $KEYSTORE_ABSOLUTE"
+          ls -la $KEYSTORE_ABSOLUTE
+          keytool -list -keystore $KEYSTORE_ABSOLUTE -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -noprompt 2>&1 | head -10
 
       - name: Build signed release AAB
         working-directory: CallMeNot
         run: ./gradlew bundleRelease --no-daemon
         env:
-          KEYSTORE_PATH: keystore/release.keystore
+          KEYSTORE_PATH: ${{ env.KEYSTORE_ABSOLUTE }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
