@@ -1,44 +1,49 @@
-name: Build Android APK
+name: Build & Release AAB
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      
-    - name: Setup Gradle Wrapper
-      run: |
-        cd CallMeNot
-        mkdir -p gradle/wrapper
-        curl -L -o gradle/wrapper/gradle-wrapper.jar "https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar"
-        chmod +x gradlew
-        
-    - name: Build Debug APK
-      run: |
-        cd CallMeNot
-        ./gradlew assembleDebug --no-daemon
-        
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug
-        path: CallMeNot/app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 7
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        working-directory: CallMeNot
+        run: chmod +x gradlew
+
+      - name: Decode release keystore
+        run: |
+          mkdir -p CallMeNot/app/keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > CallMeNot/app/keystore/release.keystore
+
+      - name: Build signed release AAB
+        working-directory: CallMeNot
+        run: ./gradlew bundleRelease --no-daemon
+        env:
+          KEYSTORE_PATH: keystore/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: callmenot-release-${{ github.run_number }}
+          path: CallMeNot/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
