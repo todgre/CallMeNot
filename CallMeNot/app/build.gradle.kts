@@ -14,8 +14,8 @@ android {
         applicationId = "com.callmenot.app"
         minSdk = 29
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.0.3"
+        versionCode = 6
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -109,10 +109,6 @@ dependencies {
     implementation("com.android.billingclient:billing-ktx:6.1.0")
     
     implementation("io.michaelrocks:libphonenumber-android:8.13.27")
-    
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.hilt:hilt-work:1.1.0")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
     
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
