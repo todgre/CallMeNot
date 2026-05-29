@@ -14,8 +14,8 @@ android {
         applicationId = "com.callmenot.app"
         minSdk = 29
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.0.4"
+        versionCode = 7
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -102,9 +102,10 @@ dependencies {
     
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.android.recaptcha:recaptcha:18.4.0")
     
     implementation("com.android.billingclient:billing-ktx:6.1.0")
     
