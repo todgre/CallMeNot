@@ -54,3 +54,12 @@ jobs:
           name: callmenot-release-${{ github.run_number }}
           path: CallMeNot/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
+
+      - name: Upload to Google Play (Alpha)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.callmenot.app
+          releaseFiles: CallMeNot/app/build/outputs/bundle/release/app-release.aab
+          track: alpha
+          status: completed
