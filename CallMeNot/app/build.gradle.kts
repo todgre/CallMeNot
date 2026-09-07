@@ -107,7 +107,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.android.recaptcha:recaptcha:18.4.0")
     
-    implementation("com.android.billingclient:billing-ktx:8.0.0")
+    implementation("com.android.billingclient:billing:8.0.0")
     
     implementation("io.michaelrocks:libphonenumber-android:8.13.27")
     
