@@ -92,8 +92,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    kapt("com.google.dagger:hilt-compiler:2.56.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     
     implementation("androidx.room:room-runtime:2.6.1")
