@@ -41,7 +41,7 @@ jobs:
 
       - name: Build signed release AAB
         working-directory: CallMeNot
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
         env:
           KEYSTORE_PATH: ${{ env.KEYSTORE_ABSOLUTE }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
