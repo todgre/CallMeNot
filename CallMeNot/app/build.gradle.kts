@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "com.callmenot.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.callmenot.app"
         minSdk = 29
-        targetSdk = 35
-        versionCode = 7
-        versionName = "1.0.5"
+        targetSdk = 36
+        versionCode = 8
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -107,7 +107,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.android.recaptcha:recaptcha:18.4.0")
     
-    implementation("com.android.billingclient:billing-ktx:6.1.0")
+    implementation("com.android.billingclient:billing-ktx:8.0.0")
     
     implementation("io.michaelrocks:libphonenumber-android:8.13.27")
     

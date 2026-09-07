@@ -7,6 +7,7 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
@@ -45,7 +46,12 @@ class BillingManager @Inject constructor(
     fun initialize() {
         billingClient = BillingClient.newBuilder(context)
             .setListener(this)
-            .enablePendingPurchases()
+            .enablePendingPurchases(
+                PendingPurchasesParams.newBuilder()
+                    .enableOneTimeProducts()
+                    .build()
+            )
+            .enableAutoServiceReconnection()
             .build()
         
         startConnection()
@@ -66,7 +72,6 @@ class BillingManager @Inject constructor(
 
             override fun onBillingServiceDisconnected() {
                 _isConnected.value = false
-                startConnection()
             }
         })
     }
@@ -87,9 +92,9 @@ class BillingManager @Inject constructor(
             .setProductList(productList)
             .build()
         
-        billingClient?.queryProductDetailsAsync(params) { result, productDetailsList ->
+        billingClient?.queryProductDetailsAsync(params) { result, queryResult ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                _productDetails.value = productDetailsList
+                _productDetails.value = queryResult.productDetailsList
             }
         }
     }
