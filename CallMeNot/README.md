@@ -41,7 +41,7 @@ Configure availability, pricing, and any Play subscription offers in Play Consol
 
 ## GitHub Actions builds
 
-`.github/workflows/android-build.yml` runs unit tests and compiles the debug app on pushes and pull requests to `main`. It does **not** automatically publish a release or upload a debug APK artifact.
+`.github/workflows/android-build.yml` runs unit tests, compiles the debug app, and validates an **unsigned minified release bundle** on pushes and pull requests to `main`. It does **not** automatically publish a release or upload a debug APK artifact.
 
 Manually dispatch the workflow to build a signed release AAB and save it as a workflow artifact. Configure these GitHub Actions secrets for that step:
 

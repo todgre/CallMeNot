@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-internal const val VERIFIED_ENTITLEMENT_CACHE_TTL_MILLIS = 24 * 60 * 60 * 1000L
+// A bounded offline grace period avoids abruptly disabling protection during
+// a Play outage. Re-check Play whenever connected; a confirmed absence revokes it.
+internal const val VERIFIED_ENTITLEMENT_CACHE_TTL_MILLIS = 7 * 24 * 60 * 60 * 1000L
 
 @Singleton
 class BillingManager @Inject constructor(
@@ -213,7 +215,13 @@ class BillingManager @Inject constructor(
 
     override fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            processPurchases(purchases)
+            // The callback contains *changed* purchases, not necessarily the
+            // account's complete inventory. Pending plan changes must not
+            // revoke an existing active subscription.
+            if (purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }) {
+                processPurchases(purchases)
+            }
+            queryPurchases()
         } else if (result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
             // Cancellation is not an error and does not change the current entitlement.
         } else if (result.responseCode == BillingClient.BillingResponseCode.OK) {

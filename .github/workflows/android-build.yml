@@ -45,6 +45,11 @@ jobs:
         working-directory: CallMeNot
         run: ./gradlew testDebugUnitTest assembleDebug --no-daemon --stacktrace
 
+      - name: Validate minified release bundle without signing secrets
+        if: github.event_name != 'workflow_dispatch'
+        working-directory: CallMeNot
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+
       - name: Decode release keystore
         if: github.event_name == 'workflow_dispatch'
         run: |

@@ -176,6 +176,15 @@ private fun ProtectionStatusCard(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                            is SubscriptionStatus.Error -> {
+                                Text(
+                                    text = if (uiState.hasVerifiedEntitlement)
+                                        "Google Play unavailable; using recent subscription check"
+                                    else "Google Play unavailable; subscription not verified",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             is SubscriptionStatus.NotSubscribed -> {
                                 if (uiState.trialDaysRemaining > 0) {
                                     Text(

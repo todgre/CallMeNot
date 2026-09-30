@@ -42,7 +42,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            // CI validates release minification without exposing signing secrets
+            // on push or pull-request builds. Manual dispatch signs the bundle.
+            signingConfig = if (System.getenv("KEYSTORE_PATH") != null)
+                signingConfigs.getByName("release") else null
         }
         debug {
             isMinifyEnabled = false

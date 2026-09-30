@@ -18,11 +18,11 @@ class SubscriptionBillingTermsTest {
     }
 
     @Test
-    fun cachedEntitlementIsAcceptedOnlyWithinThe24HourVerificationWindow() {
+    fun cachedEntitlementIsAcceptedOnlyWithinTheSevenDayGraceWindow() {
         val verifiedAt = 10_000L
         assertTrue(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt))
-        assertTrue(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt + 86_399_999L))
-        assertFalse(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt + 86_400_000L))
+        assertTrue(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt + 604_799_999L))
+        assertFalse(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt + 604_800_000L))
         assertFalse(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt - 1L))
         assertFalse(isVerifiedEntitlementCacheFresh(0L, verifiedAt))
     }
