@@ -276,29 +276,6 @@ fun SettingsScreen(
                         openAppSettings(context)
                     }
                 )
-                HorizontalDivider()
-                DiagnosticRow(
-                    title = "Battery Optimization Exempt",
-                    isEnabled = status.isBatteryOptimizationIgnored,
-                    onClick = {
-                        try {
-                            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                data = Uri.parse("package:${context.packageName}")
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            try {
-                                val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                context.startActivity(fallbackIntent)
-                            } catch (e2: Exception) {
-                                openAppSettings(context)
-                            }
-                        }
-                    }
-                )
             }
         }
     }
