@@ -15,6 +15,7 @@ import android.util.Log
 import com.callmenot.app.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,18 +50,22 @@ class CallMeNotScreeningService : CallScreeningService() {
         val response = runBlocking {
             try {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Processing incoming call")
-                processCall(callDetails)
+                // Telecom requires a prompt response; never leave an incoming call
+                // waiting indefinitely for database, contacts, or billing I/O.
+                withTimeoutOrNull(4_000L) { processCall(callDetails) } ?: allowCall()
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing call, allowing by default", e)
-                CallResponse.Builder()
-                    .setDisallowCall(false)
-                    .setSkipCallLog(false)
-                    .setSkipNotification(false)
-                    .build()
+                allowCall()
             }
         }
         respondToCall(callDetails, response)
     }
+
+    private fun allowCall(): CallResponse = CallResponse.Builder()
+        .setDisallowCall(false)
+        .setSkipCallLog(false)
+        .setSkipNotification(false)
+        .build()
 
     private suspend fun processCall(callDetails: Call.Details): CallResponse {
         val handle = callDetails.handle

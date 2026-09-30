@@ -33,6 +33,15 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            version = "1.0.7",
+            date = "September 2026",
+            changes = listOf(
+                "Subscription plans now show prices from Google Play",
+                "Purchase restoration and call protection reliability improvements",
+                "Cloud sync is unavailable in this version; existing cloud records are untouched"
+            )
+        ),
+        ChangelogEntry(
             version = "1.0.0",
             date = "January 2026",
             changes = listOf(
@@ -42,7 +51,6 @@ object Changelog {
                 "Import contacts to whitelist",
                 "Temporary whitelist entries",
                 "Call activity log with actions",
-                "Cloud sync across devices (optional)",
                 "7-day free trial"
             )
         )

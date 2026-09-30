@@ -1,6 +1,8 @@
 package com.callmenot.app.ui.screens.paywall
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -52,7 +52,14 @@ fun PaywallScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val activity = context.findActivity()
     val snackbarHostState = remember { SnackbarHostState() }
+    val selectedProduct = when (uiState.selectedProduct) {
+        ProductType.MONTHLY -> uiState.monthlyProduct
+        ProductType.YEARLY -> uiState.yearlyProduct
+    }
+    val selectedOffer = viewModel.selectedOffer(selectedProduct)
+    val displayedTerms = selectedOffer?.let { formatOfferTerms(it) }
     
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -123,32 +130,78 @@ fun PaywallScreen(
                         PricingCard(
                             modifier = Modifier.weight(1f),
                             title = "Monthly",
-                            price = "$2.99",
-                            period = "/month",
+                            price = uiState.monthlyProduct?.let { product ->
+                                viewModel.selectedOffer(product)?.pricingPhases?.pricingPhaseList?.lastOrNull()?.formattedPrice
+                            } ?: "Unavailable",
+                            period = uiState.monthlyProduct?.let { product ->
+                                viewModel.selectedOffer(product)?.pricingPhases?.pricingPhaseList?.lastOrNull()
+                                    ?.billingPeriod?.let { "per ${formatBillingPeriod(it)}" }
+                            } ?: "Not available in Play",
                             isSelected = uiState.selectedProduct == ProductType.MONTHLY,
-                            isBestValue = false,
                             onClick = { viewModel.selectProduct(ProductType.MONTHLY) }
                         )
 
                         PricingCard(
                             modifier = Modifier.weight(1f),
                             title = "Yearly",
-                            price = "$19.99",
-                            period = "/year",
+                            price = uiState.yearlyProduct?.let { product ->
+                                viewModel.selectedOffer(product)?.pricingPhases?.pricingPhaseList?.lastOrNull()?.formattedPrice
+                            } ?: "Unavailable",
+                            period = uiState.yearlyProduct?.let { product ->
+                                viewModel.selectedOffer(product)?.pricingPhases?.pricingPhaseList?.lastOrNull()
+                                    ?.billingPeriod?.let { "per ${formatBillingPeriod(it)}" }
+                            } ?: "Not available in Play",
                             isSelected = uiState.selectedProduct == ProductType.YEARLY,
-                            isBestValue = true,
                             onClick = { viewModel.selectProduct(ProductType.YEARLY) }
                         )
                     }
+                }
+
+                if (displayedTerms != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = displayedTerms,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                } else if (!uiState.isLoading) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "This plan is not currently available in Google Play.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                when (uiState.subscriptionStatus) {
+                    is com.callmenot.app.service.SubscriptionStatus.Active -> {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Your subscription is active.", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    is com.callmenot.app.service.SubscriptionStatus.Pending -> {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Your purchase is pending Google Play confirmation.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    else -> Unit
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { viewModel.purchase(context as Activity) },
+                onClick = { activity?.let(viewModel::purchase) },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && !uiState.isPurchasing
+                enabled = activity != null && !uiState.isLoading && !uiState.isPurchasing &&
+                    selectedProduct != null && selectedOffer != null &&
+                    uiState.subscriptionStatus !is com.callmenot.app.service.SubscriptionStatus.Active &&
+                    uiState.subscriptionStatus !is com.callmenot.app.service.SubscriptionStatus.Pending
             ) {
                 if (uiState.isPurchasing) {
                     CircularProgressIndicator(
@@ -156,7 +209,13 @@ fun PaywallScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Subscribe Now")
+                    Text(
+                        when (uiState.subscriptionStatus) {
+                            is com.callmenot.app.service.SubscriptionStatus.Active -> "Subscription Active"
+                            is com.callmenot.app.service.SubscriptionStatus.Pending -> "Purchase Pending"
+                            else -> "Subscribe Now"
+                        }
+                    )
                 }
             }
 
@@ -164,15 +223,20 @@ fun PaywallScreen(
 
             TextButton(
                 onClick = { viewModel.restorePurchases() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isRestoring
             ) {
-                Text("Restore Purchases")
+                if (uiState.isRestoring) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                } else {
+                    Text("Restore Purchases")
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Cancel anytime. Subscription renews automatically.",
+                text = "Manage or cancel your subscription in Google Play.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -194,7 +258,7 @@ private fun FeatureList() {
     ) {
         FeatureRow("Block all unwanted calls")
         FeatureRow("Whitelist-only protection")
-        FeatureRow("Cloud sync across devices")
+        FeatureRow("Whitelist and call controls on this device")
         FeatureRow("Emergency bypass for urgent calls")
     }
 }
@@ -226,7 +290,6 @@ private fun PricingCard(
     price: String,
     period: String,
     isSelected: Boolean,
-    isBestValue: Boolean,
     onClick: () -> Unit
 ) {
     Card(
@@ -249,27 +312,6 @@ private fun PricingCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isBestValue) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "SAVE 44%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium
@@ -281,7 +323,7 @@ private fun PricingCard(
                 text = price,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (isBestValue) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
 
             Text(
@@ -291,4 +333,25 @@ private fun PricingCard(
             )
         }
     }
+}
+
+private fun formatOfferTerms(offer: com.android.billingclient.api.ProductDetails.SubscriptionOfferDetails): String {
+    return offer.pricingPhases.pricingPhaseList.map { phase ->
+        val period = formatBillingPeriod(phase.billingPeriod)
+        when (phase.recurrenceMode) {
+            com.android.billingclient.api.ProductDetails.RecurrenceMode.INFINITE_RECURRING ->
+                "${phase.formattedPrice} every $period"
+            com.android.billingclient.api.ProductDetails.RecurrenceMode.FINITE_RECURRING -> {
+                val cycles = phase.billingCycleCount
+                "${phase.formattedPrice} every $period for $cycles ${if (cycles == 1) "cycle" else "cycles"}"
+            }
+            else -> "${phase.formattedPrice} for $period"
+        }
+    }.joinToString(", then ")
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

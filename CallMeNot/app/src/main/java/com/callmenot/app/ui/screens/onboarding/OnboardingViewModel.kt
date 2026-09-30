@@ -3,7 +3,6 @@ package com.callmenot.app.ui.screens.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.callmenot.app.data.repository.SettingsRepository
-import com.callmenot.app.service.BillingManager
 import com.callmenot.app.util.PermissionHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val permissionHelper: PermissionHelper,
-    private val billingManager: BillingManager
+    private val permissionHelper: PermissionHelper
 ) : ViewModel() {
 
     val isOnboardingComplete: StateFlow<Boolean> = settingsRepository.onboardingCompleted
@@ -44,11 +42,11 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    fun completeOnboarding() {
+    fun completeOnboarding(onComplete: () -> Unit) {
         viewModelScope.launch {
             settingsRepository.initTrialIfNeeded()
             settingsRepository.setOnboardingCompleted(true)
-            billingManager.initialize()
+            onComplete()
         }
     }
 

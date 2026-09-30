@@ -172,7 +172,9 @@ fun SettingsScreen(
                                     "No active subscription"
                                 }
                             }
-                            else -> "Loading..."
+                            is SubscriptionStatus.Pending -> "Purchase pending confirmation"
+                            is SubscriptionStatus.Error -> "Could not verify subscription with Google Play"
+                            is SubscriptionStatus.Loading -> "Checking subscription..."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -189,7 +191,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsSection(title = "Cloud Sync (Optional)") {
+        SettingsSection(title = "Account & Cloud Sync") {
             if (uiState.userEmail != null) {
                 Row(
                     modifier = Modifier
@@ -199,18 +201,18 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Signed in",
+                            text = "Firebase session active",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = uiState.userEmail ?: "",
+                            text = uiState.userEmail.orEmpty(),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Your whitelist syncs across devices",
+                            text = "Cloud sync is unavailable in this version. Signing out ends this session only; it does not delete local data or previously stored cloud data.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.tertiary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -225,19 +227,13 @@ fun SettingsScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Not signed in",
+                        text = "No Firebase session detected",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Sign in to sync your whitelist and settings across devices. Your data stays on this device until you sign in.",
+                        text = "This app version does not offer sign-in or cloud sync. Whitelist entries and settings are used locally on this device.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "The app works fully without an account.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }

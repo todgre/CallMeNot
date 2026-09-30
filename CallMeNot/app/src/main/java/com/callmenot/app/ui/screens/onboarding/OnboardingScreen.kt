@@ -1,8 +1,5 @@
 package com.callmenot.app.ui.screens.onboarding
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -43,13 +40,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.callmenot.app.service.ProtectionNotificationService
-import com.callmenot.app.service.SamsungCallBlockerService
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -58,15 +52,8 @@ fun OnboardingScreen(
     onComplete: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    
     fun completeOnboardingAndStart() {
-        viewModel.completeOnboarding()
-        ProtectionNotificationService.start(context)
-        if (SamsungCallBlockerService.isSamsungDevice()) {
-            SamsungCallBlockerService.start(context)
-        }
-        onComplete()
+        viewModel.completeOnboarding(onComplete)
     }
     val scope = rememberCoroutineScope()
     val permissionStatus by viewModel.permissionStatus.collectAsState()
@@ -85,16 +72,9 @@ fun OnboardingScreen(
         viewModel.refreshPermissionStatus()
     }
     
-    val batteryOptimizationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { _ ->
-        viewModel.refreshPermissionStatus()
-    }
-    
     val allPermissionsGranted = permissionStatus.hasCallScreeningRole && 
                                  permissionStatus.hasContactsPermission && 
-                                 permissionStatus.hasCallLogPermission &&
-                                 permissionStatus.isBatteryOptimizationIgnored
+                                  permissionStatus.hasCallLogPermission
 
     Column(
         modifier = Modifier
@@ -123,21 +103,6 @@ fun OnboardingScreen(
                                 android.Manifest.permission.READ_CALL_LOG
                             )
                         )
-                    },
-                    onRequestBatteryOptimization = {
-                        try {
-                            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                data = Uri.parse("package:${context.packageName}")
-                            }
-                            batteryOptimizationLauncher.launch(intent)
-                        } catch (e: Exception) {
-                            try {
-                                val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                                batteryOptimizationLauncher.launch(fallbackIntent)
-                            } catch (e2: Exception) {
-                                // Ignore if both fail
-                            }
-                        }
                     }
                 )
                 3 -> TrialPage()
@@ -272,7 +237,7 @@ private fun HowItWorksPage() {
         FeatureItem(
             icon = Icons.Default.Block,
             title = "Silent Blocking",
-            description = "Everyone else goes straight to voicemail. No ring. No interruption."
+            description = "Unapproved calls are rejected before your phone rings. Voicemail behavior depends on your carrier."
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -324,8 +289,7 @@ private fun FeatureItem(icon: ImageVector, title: String, description: String) {
 private fun PermissionsPage(
     permissionStatus: com.callmenot.app.util.PermissionHelper.PermissionStatus,
     onRequestRole: () -> Unit,
-    onRequestPermissions: () -> Unit,
-    onRequestBatteryOptimization: () -> Unit
+    onRequestPermissions: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -364,14 +328,6 @@ private fun PermissionsPage(
             onRequest = onRequestPermissions
         )
         
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        PermissionCard(
-            title = "Battery Exception",
-            description = "Allows call blocking to stay active. Uses minimal battery.",
-            isGranted = permissionStatus.isBatteryOptimizationIgnored,
-            onRequest = onRequestBatteryOptimization
-        )
     }
 }
 
@@ -481,26 +437,13 @@ private fun TrialPage() {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "$2.99",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "/month",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Text("Monthly plan", style = MaterialTheme.typography.titleMedium)
                     }
                     
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Yearly plan", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            text = "$19.99",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "/year (Save 44%)",
+                            text = "Prices shown in the Play purchase screen",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )

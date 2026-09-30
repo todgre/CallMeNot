@@ -1,133 +1,29 @@
 package com.callmenot.app.data.remote
 
-import android.util.Log
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.callmenot.app.data.local.entity.WhitelistEntry
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Cloud sync is not available in this app version.
+ *
+ * Keep the existing API so callers remain safe, but do not touch Firestore:
+ * this preserves any existing cloud data and prevents a local-only list from
+ * overwriting/deleting records in a configured Firebase project.
+ */
 @Singleton
 class FirestoreService @Inject constructor() {
-    
-    companion object {
-        private const val TAG = "FirestoreService"
-        private const val MAX_BATCH_SIZE = 499
-    }
-    
-    private val firestore: FirebaseFirestore? by lazy { 
-        try {
-            FirebaseFirestore.getInstance()
-        } catch (e: Exception) {
-            Log.w(TAG, "Firebase not configured, cloud sync disabled", e)
-            null
-        }
-    }
-    
-    val isAvailable: Boolean
-        get() = firestore != null
-    
-    private fun userCollection(userId: String) = firestore?.collection("users")?.document(userId)
-    private fun whitelistCollection(userId: String) = userCollection(userId)?.collection("whitelist")
-    private fun settingsDocument(userId: String) = userCollection(userId)?.collection("settings")?.document("preferences")
-    
-    suspend fun syncWhitelist(userId: String, entries: List<WhitelistEntry>): Boolean {
-        val fs = firestore ?: return false
-        try {
-            val cloudSnapshot = whitelistCollection(userId)?.get()?.await()
-            val cloudIds = cloudSnapshot?.documents?.map { it.id }?.toSet() ?: emptySet()
-            val localIds = entries.map { it.id }.toSet()
-            val toDelete = cloudIds - localIds
 
-            data class BatchOp(val type: String, val id: String, val entry: WhitelistEntry? = null)
-            
-            val operations = mutableListOf<BatchOp>()
-            entries.forEach { entry -> operations.add(BatchOp("set", entry.id, entry)) }
-            toDelete.forEach { id -> operations.add(BatchOp("delete", id)) }
-            
-            val chunks = operations.chunked(MAX_BATCH_SIZE)
-            for (chunk in chunks) {
-                val batch = fs.batch()
-                for (op in chunk) {
-                    when (op.type) {
-                        "set" -> {
-                            val docRef = whitelistCollection(userId)?.document(op.id) ?: continue
-                            batch.set(docRef, op.entry!!.toMap(), SetOptions.merge())
-                        }
-                        "delete" -> {
-                            val docRef = whitelistCollection(userId)?.document(op.id) ?: continue
-                            batch.delete(docRef)
-                        }
-                    }
-                }
-                batch.commit().await()
-            }
-            return true
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to sync whitelist", e)
-            return false
-        }
-    }
-    
-    suspend fun getWhitelist(userId: String): List<WhitelistEntry> {
-        return try {
-            val snapshot = whitelistCollection(userId)?.get()?.await() ?: return emptyList()
-            snapshot.documents.mapNotNull { doc ->
-                try {
-                    WhitelistEntry(
-                        id = doc.id,
-                        displayName = doc.getString("displayName") ?: "",
-                        phoneNumber = doc.getString("phoneNumber") ?: "",
-                        normalizedNumber = doc.getString("normalizedNumber") ?: "",
-                        contactId = doc.getString("contactId"),
-                        isEmergencyBypass = doc.getBoolean("isEmergencyBypass") ?: false,
-                        createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
-                        updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
-                    )
-                } catch (e: Exception) {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get whitelist", e)
-            emptyList()
-        }
-    }
-    
-    suspend fun deleteWhitelistEntry(userId: String, entryId: String) {
-        try {
-            whitelistCollection(userId)?.document(entryId)?.delete()?.await()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete whitelist entry", e)
-        }
-    }
-    
-    suspend fun syncSettings(userId: String, settings: Map<String, Any>) {
-        try {
-            settingsDocument(userId)?.set(settings, SetOptions.merge())?.await()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to sync settings", e)
-        }
-    }
-    
-    suspend fun getSettings(userId: String): Map<String, Any>? {
-        return try {
-            val snapshot = settingsDocument(userId)?.get()?.await() ?: return null
-            snapshot.data
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get settings", e)
-            null
-        }
-    }
-    
-    private fun WhitelistEntry.toMap(): Map<String, Any?> = mapOf(
-        "displayName" to displayName,
-        "phoneNumber" to phoneNumber,
-        "normalizedNumber" to normalizedNumber,
-        "contactId" to contactId,
-        "isEmergencyBypass" to isEmergencyBypass,
-        "createdAt" to createdAt,
-        "updatedAt" to updatedAt
-    )
+    val isAvailable: Boolean
+        get() = false
+
+    suspend fun syncWhitelist(userId: String, entries: List<WhitelistEntry>): Boolean = false
+
+    suspend fun getWhitelist(userId: String): List<WhitelistEntry> = emptyList()
+
+    suspend fun deleteWhitelistEntry(userId: String, entryId: String) = Unit
+
+    suspend fun syncSettings(userId: String, settings: Map<String, Any>) = Unit
+
+    suspend fun getSettings(userId: String): Map<String, Any>? = null
 }

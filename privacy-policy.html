@@ -20,48 +20,44 @@
 </head>
 <body>
     <h1>CallMeNot Privacy Policy</h1>
-    <p class="last-updated">Last Updated: January 7, 2026</p>
+    <p class="last-updated">Last Updated: September 30, 2026</p>
 
-    <p>AppsStudio HQ ("we", "our", or "us") operates the CallMeNot mobile application. This Privacy Policy explains how we collect, use, and protect your information when you use our app.</p>
+    <p>AppsStudio HQ ("we", "our", or "us") operates the CallMeNot mobile application. This Privacy Policy describes how information is handled by the app.</p>
 
     <h2>Information We Collect</h2>
-    <p>CallMeNot requires certain permissions to function as a call screening app:</p>
+    <p>CallMeNot may access the following information on your device when you grant the relevant Android permissions and use the related features:</p>
     <ul>
-        <li><strong>Phone Number (for authentication):</strong> We use Firebase Phone Authentication to verify your identity. Your phone number is stored securely by Firebase and used only for account verification.</li>
-        <li><strong>Contacts:</strong> We access your contacts locally on your device to help you build your whitelist. Contact data is stored only on your device unless you enable cloud sync.</li>
-        <li><strong>Call Log:</strong> We read your call log to display call history and identify recent callers. This data remains on your device.</li>
-        <li><strong>Call Screening:</strong> We use the CallScreeningService API to intercept and filter incoming calls based on your whitelist settings.</li>
+        <li><strong>Contacts and phone numbers:</strong> Contact information may be read on-device for contact and whitelist features.</li>
+        <li><strong>Call information:</strong> The app uses Android call-screening functionality and, where permission is granted, may read call-log information for app features. The app's local records are stored on your device.</li>
+        <li><strong>App preferences and whitelist:</strong> These are stored locally on your device.</li>
     </ul>
+    <p>The app includes Firebase SDKs and a Firebase project configuration. The current app version has no sign-in flow and does not invoke its Firestore sync operations from the app, so cloud sync is not offered. A Firebase configuration alone does not mean your whitelist is uploaded. We cannot determine from the app whether data may have been stored by a prior version or through another service.</p>
 
     <h2>How We Use Your Information</h2>
     <ul>
-        <li>To authenticate your account via phone number verification</li>
         <li>To screen incoming calls based on your whitelist preferences</li>
-        <li>To display call history within the app</li>
-        <li>To sync your whitelist across devices (only if you enable cloud sync)</li>
+        <li>To provide contact, whitelist, and call-related features on your device</li>
     </ul>
 
     <h2>Data Storage</h2>
-    <p><strong>Local Storage:</strong> Your whitelist, call log, and settings are stored locally on your device using encrypted storage.</p>
-    <p><strong>Cloud Sync (Optional):</strong> If you choose to enable cloud sync, your whitelist is securely stored in Google Firebase Firestore, associated with your authenticated account. You can delete this data at any time from within the app.</p>
+    <p><strong>Local storage:</strong> App data such as your whitelist and preferences is stored locally on your device. Android's app-storage controls can remove app data; Android backup or device-transfer settings may preserve or restore some app preferences and whitelist data. This policy does not claim that the app's local database is encrypted.</p>
+    <p><strong>Cloud storage:</strong> The current app version does not provide cloud sync or an in-app way to view or delete cloud data. Signing out of a Firebase session, if one exists, only ends that session; it does not delete data previously stored in Firebase.</p>
 
     <h2>Data Sharing</h2>
-    <p>We do not sell, trade, or share your personal information with third parties, except:</p>
+    <p>We do not sell personal information. The app includes Firebase Authentication and Firestore SDKs and is configured for Firebase, but the current app version does not offer sign-in or invoke Firestore sync. Other third-party services may process information as described in their own terms:</p>
     <ul>
-        <li><strong>Firebase:</strong> For authentication and optional cloud sync services (operated by Google)</li>
         <li><strong>Google Play:</strong> For subscription management and billing</li>
     </ul>
 
     <h2>Data Security</h2>
-    <p>We implement industry-standard security measures to protect your data, including encryption for stored data and secure transmission protocols.</p>
+    <p>Data stored by the app is subject to the security of your device and Android. We do not make a separate claim here that app data is encrypted. Firebase services, if used outside the current app data flow, are subject to Google's terms and controls.</p>
 
     <h2>Your Rights</h2>
-    <p>You have the right to:</p>
+    <p>You can manage local app data and permissions using the app and Android settings. The current app version has no account creation, cloud-sync, or account-deletion flow. If you used an earlier version or otherwise believe your data may be in Firebase, contact us to ask about it; signing out or clearing this app's local storage does not delete cloud records.</p>
     <ul>
-        <li>Access your data within the app</li>
-        <li>Delete your account and all associated data</li>
-        <li>Export your whitelist</li>
-        <li>Opt out of cloud sync at any time</li>
+        <li>Remove individual whitelist entries using the app's whitelist controls</li>
+        <li>Remove app-local data using Android's app storage controls</li>
+        <li>Ask us about a data request at privacy@appsstudiohq.com</li>
     </ul>
 
     <h2>Children's Privacy</h2>

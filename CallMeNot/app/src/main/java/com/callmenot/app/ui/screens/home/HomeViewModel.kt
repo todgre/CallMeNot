@@ -22,6 +22,7 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val isBlockingEnabled: Boolean = true,
     val subscriptionStatus: SubscriptionStatus = SubscriptionStatus.Loading,
+    val hasVerifiedEntitlement: Boolean = false,
     val trialDaysRemaining: Int = 7,
     val blockedToday: Int = 0,
     val allowedToday: Int = 0,
@@ -71,6 +72,7 @@ class HomeViewModel @Inject constructor(
                 _uiState.value.copy(
                     isBlockingEnabled = blockingEnabled,
                     subscriptionStatus = subStatus,
+                    hasVerifiedEntitlement = billingManager.isSubscriptionActive(),
                     blockedToday = blocked,
                     allowedToday = allowed,
                     whitelistCount = whitelistCount
@@ -95,9 +97,6 @@ class HomeViewModel @Inject constructor(
 
     fun isProtectionActive(): Boolean {
         val state = _uiState.value
-        return when (state.subscriptionStatus) {
-            is SubscriptionStatus.Active -> state.isBlockingEnabled
-            else -> state.trialDaysRemaining > 0 && state.isBlockingEnabled
-        }
+        return (state.hasVerifiedEntitlement || state.trialDaysRemaining > 0) && state.isBlockingEnabled
     }
 }

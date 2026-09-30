@@ -3,7 +3,18 @@ name: Build & Release AAB
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
+    inputs:
+      upload_alpha:
+        description: 'Upload signed bundle to the closed-testing Alpha track'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -27,19 +38,20 @@ jobs:
         working-directory: CallMeNot
         run: chmod +x gradlew
 
-      - name: Decode release keystore
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/CallMeNot/app/keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore
-          echo "KEYSTORE_ABSOLUTE=$GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore" >> $GITHUB_ENV
+      - name: Run unit tests and compile debug app
+        working-directory: CallMeNot
+        run: ./gradlew testDebugUnitTest assembleDebug --no-daemon --stacktrace
 
-      - name: Verify keystore exists
+      - name: Decode release keystore
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          echo "Keystore path: $KEYSTORE_ABSOLUTE"
-          ls -la $KEYSTORE_ABSOLUTE
-          keytool -list -keystore $KEYSTORE_ABSOLUTE -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -noprompt 2>&1 | head -10
+          install -d -m 700 "$GITHUB_WORKSPACE/CallMeNot/app/keystore"
+          printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore"
+          test -s "$GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore"
+          echo "KEYSTORE_ABSOLUTE=$GITHUB_WORKSPACE/CallMeNot/app/keystore/release.keystore" >> "$GITHUB_ENV"
 
       - name: Build signed release AAB
+        if: github.event_name == 'workflow_dispatch'
         working-directory: CallMeNot
         run: ./gradlew bundleRelease --no-daemon --stacktrace
         env:
@@ -49,6 +61,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload AAB artifact
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: callmenot-release-${{ github.run_number }}
@@ -56,6 +69,7 @@ jobs:
           retention-days: 30
 
       - name: Upload to Google Play (Alpha)
+        if: github.event_name == 'workflow_dispatch' && inputs.upload_alpha
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}

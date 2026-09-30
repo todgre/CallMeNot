@@ -6,9 +6,6 @@ import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
-import android.os.PowerManager
-import android.provider.Settings
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -42,37 +39,11 @@ class PermissionHelper @Inject constructor(
         ) == PackageManager.PERMISSION_GRANTED
     }
     
-    fun hasNotificationPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-    }
-    
-    fun isBatteryOptimizationIgnored(): Boolean {
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        return powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
-    }
-    
-    fun getBatteryOptimizationSettingsIntent(): Intent {
-        return Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-    }
-    
     fun getAllRequiredPermissions(): List<String> {
-        val permissions = mutableListOf(
+        return listOf(
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.READ_CALL_LOG
         )
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
-        
-        return permissions
     }
     
     fun getMissingPermissions(): List<String> {
@@ -84,9 +55,7 @@ class PermissionHelper @Inject constructor(
     data class PermissionStatus(
         val hasCallScreeningRole: Boolean,
         val hasContactsPermission: Boolean,
-        val hasCallLogPermission: Boolean,
-        val hasNotificationPermission: Boolean,
-        val isBatteryOptimizationIgnored: Boolean
+        val hasCallLogPermission: Boolean
     ) {
         val isFullyConfigured: Boolean
             get() = hasCallScreeningRole && hasContactsPermission && hasCallLogPermission
@@ -96,9 +65,7 @@ class PermissionHelper @Inject constructor(
         return PermissionStatus(
             hasCallScreeningRole = hasCallScreeningRole(),
             hasContactsPermission = hasContactsPermission(),
-            hasCallLogPermission = hasCallLogPermission(),
-            hasNotificationPermission = hasNotificationPermission(),
-            isBatteryOptimizationIgnored = isBatteryOptimizationIgnored()
+            hasCallLogPermission = hasCallLogPermission()
         )
     }
 }

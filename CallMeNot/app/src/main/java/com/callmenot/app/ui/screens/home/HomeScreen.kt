@@ -29,8 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
-import com.callmenot.app.service.ProtectionNotificationService
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +45,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     
     if (uiState.isLoading) {
         Column(
@@ -79,11 +76,6 @@ fun HomeScreen(
             uiState = uiState,
             onToggleBlocking = { enabled ->
                 viewModel.toggleBlocking(enabled)
-                if (enabled) {
-                    ProtectionNotificationService.start(context)
-                } else {
-                    ProtectionNotificationService.stop(context)
-                }
             },
             onNavigateToPaywall = onNavigateToPaywall
         )
@@ -132,14 +124,11 @@ private fun ProtectionStatusCard(
     onToggleBlocking: (Boolean) -> Unit,
     onNavigateToPaywall: () -> Unit
 ) {
-    val isExpired = when (uiState.subscriptionStatus) {
-        is SubscriptionStatus.Active -> false
-        is SubscriptionStatus.NotSubscribed -> uiState.trialDaysRemaining <= 0
-        else -> false
-    }
+    val isExpired = !uiState.hasVerifiedEntitlement && uiState.trialDaysRemaining <= 0
+    val isChecking = isExpired && uiState.subscriptionStatus is SubscriptionStatus.Loading
     
     val statusColor = when {
-        isExpired -> MaterialTheme.colorScheme.error
+        isExpired && !isChecking -> MaterialTheme.colorScheme.error
         uiState.isBlockingEnabled -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.outline
     }
@@ -169,6 +158,7 @@ private fun ProtectionStatusCard(
                     Column {
                         Text(
                             text = when {
+                                isChecking -> "Checking subscription"
                                 isExpired -> "Protection Paused"
                                 uiState.isBlockingEnabled -> "Protection Active"
                                 else -> "Protection Disabled"
@@ -209,7 +199,7 @@ private fun ProtectionStatusCard(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            if (isExpired) {
+            if (isExpired && !isChecking) {
                 Button(
                     onClick = onNavigateToPaywall,
                     modifier = Modifier.fillMaxWidth()
