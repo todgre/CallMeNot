@@ -103,6 +103,7 @@ class CallScreeningDecisionTest {
         return SettingsSnapshot(
             blockingEnabled = blockingEnabled,
             allowStarredContacts = allowStarredContacts,
+            allowAllContacts = false,
             blockUnknownNumbers = blockUnknownNumbers,
             emergencyBypassEnabled = emergencyBypassEnabled,
             emergencyBypassMinutes = emergencyBypassMinutes,
