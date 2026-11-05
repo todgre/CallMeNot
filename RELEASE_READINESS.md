@@ -9,8 +9,8 @@ Version prepared: **1.0.7 (version code 9)**. No new Play upload or production p
 
 | Area | Verified result | Remaining limit |
 | --- | --- | --- |
-| Android CI | [Unit tests, debug APK compilation and unsigned minified release bundle passed](https://github.com/todgre/CallMeNot/actions/runs/36676226236) | Compilation does not prove behavior on a phone |
-| Signed bundle | [Signed minified AAB built successfully; artifact saved; Play upload skipped](https://github.com/todgre/CallMeNot/actions/runs/42069176431) | A successful build is not a successful Play review or device test |
+| Android CI | [Latest unit tests (including Active-state offline expiry) and debug APK compilation passed](https://github.com/todgre/CallMeNot/actions/runs/42071001481); [earlier routine unsigned-release validation passed](https://github.com/todgre/CallMeNot/actions/runs/36676226236) | Compilation does not prove behavior on a phone |
+| Signed bundle | [Latest signed minified AAB built successfully; artifact saved; Play upload skipped](https://github.com/todgre/CallMeNot/actions/runs/42071001481) | A successful build is not a successful Play review or device test |
 | Call screening | Decision work runs on IO with a 3.5-second wait deadline; fail-open response on failure; logging after response; trial starts before onboarding navigation | Real cellular calls, reboot/app-closed behavior, OEMs, permission revocation, and carrier voicemail are not device-verified |
 | Background startup | Billing starts with the Application; unsupported foreground-service/boot/Samsung fallback startup paths are no longer registered | A retained screening role is required; Android binds the screening service, not a permanent foreground service |
 | Billing UI | Play-provided price/offer phases, asynchronous restore, pending state, acknowledgement failure reporting, complete-inventory reconciliation for pending plan changes | Live products/base plans/offers, restore/renewal/refund/expiry and real purchase callbacks are unverified |
