@@ -35,39 +35,38 @@ CallMeNot/
 
 ## Tech Stack
 
-- **Language**: Kotlin 1.9+
+- **Language**: Kotlin 2.1
 - **UI**: Jetpack Compose with Material3
 - **Architecture**: MVVM + Repository pattern
 - **DI**: Hilt
 - **Database**: Room
 - **Settings**: DataStore
-- **Auth**: Firebase Phone Authentication
-- **Cloud Sync**: Firestore
-- **Billing**: Google Play Billing Library 6.1
+- **Auth/Cloud Sync**: Firebase SDKs retained, but no sign-in or active sync flow
+- **Billing**: Google Play Billing Library 8
 - **Min SDK**: 29 (Android 10+)
-- **Target SDK**: 34
+- **Target SDK**: 36
 
 ## Key Features
 
 1. **CallScreeningService**: Intercepts incoming calls at OS level
 2. **Whitelist Management**: Add/remove numbers, import from contacts
 3. **Rules Engine**: Allow starred contacts, emergency bypass, recent outgoing
-4. **Cloud Sync**: Firebase-based whitelist sync for device migration
-5. **Subscription**: 7-day trial, then $2.99/mo or $19.99/yr
+4. **Local data**: Cloud sync is disabled; existing cloud records are untouched
+5. **Subscription**: Local 7-day trial, then Play-priced monthly/yearly plans
 
 ## How to Build
 
 ### Option 1: GitHub Actions (Recommended - No Local Setup)
 
 1. Push this code to a GitHub repository
-2. GitHub Actions will automatically build the APK
-3. Download from Actions → Artifacts
+2. Pushes and pull requests test/debug-build and validate an unsigned minified release bundle
+3. Manually dispatch the workflow for a signed AAB; Alpha upload is an explicit option, default off
 
 ### Option 2: Local Android Studio
 
 1. Download the `CallMeNot` folder
 2. Open in Android Studio
-3. Add `google-services.json` from Firebase Console
+3. Keep the existing Android Google Services configuration
 4. Sync Gradle
 5. Run on physical device (API 29+)
 
@@ -75,34 +74,23 @@ CallMeNot/
 
 Before building for production:
 
-1. **Firebase**: Create project, enable Phone Auth, create Firestore database
-2. **Google Play Billing**: Set up subscription products in Play Console
-3. **Signing**: Create release keystore for Play Store distribution
+1. **Google Play Billing**: Verify the existing subscription products, base plans, offers and license testers
+2. **Signing**: Preserve the existing release upload key and GitHub Actions secrets
+3. **Security**: Confirm revocation of the service-account key previously found in public Git history before Play uploads
+4. **External readiness**: See `RELEASE_READINESS.md` for evidence and outstanding console/device checks
 
-## Recent Changes (March 2026)
+## Current Runtime Behavior
 
-- **Critical: Samsung Call Blocker Fixed**: SamsungCallBlockerService was passing null for all call numbers, treating every call as private. Now queries the call log to resolve the incoming number before evaluating. Also runs as a proper foreground service so Android won't kill it.
-- **Billing Expiry Fix**: Removed manual expiry calculation (purchaseTime + 30/365 days) from BillingManager. Google Play manages subscription renewals; the app now just checks purchase state.
-- **Emergency Bypass**: Kept at 1 previous call threshold - second call from same number within window triggers bypass, as designed.
-- **Security: Debug Logging Gated**: All phone number and decision logging in CallMeNotScreeningService and SamsungCallBlockerService is now gated behind BuildConfig.DEBUG to prevent leaking sensitive data in production logcat.
-- **BootReceiver Fix**: Samsung call blocker service now only starts on boot when blocking is enabled (was starting regardless of toggle state).
-- **Cloud Sync Deletion Fix**: Firestore sync now properly deletes entries that were removed locally. Previously deleted whitelist entries would reappear when syncing from another device.
-
-## Recent Changes (January 2026)
-
-- **Battery Optimization in Onboarding**: Moved battery exemption request from Settings to required onboarding permission (third card after Call Screening and Contacts/Call Log). Users must grant all three permissions before reaching trial page. This prevents call blocking failures that could lead to bad reviews.
-- **Fixed Red Flash on App Launch**: Fixed race condition where trial status briefly showed as "expired" during onboarding→home transition. The issue was that navigation happened before trial start date was persisted. Now getTrialDaysRemaining() returns 7 days when date is null (trial just starting), and HomeScreen shows a loading spinner until data is ready.
-- **Configurable Emergency Bypass**: Users can now set the emergency bypass time window from 1-60 minutes (default 3) via dialog in Settings
-- **Notification Bug Fix**: Service now properly starts/stops based on protection toggle, checks saved state on device boot
-- **Call Log Filtering**: Added time period filter (Today, 1 Week, 1 Month, 1 Year, All Time) with dropdown UI
-- **Optional Firebase**: App works fully locally without account; cloud sync is optional for backing up settings and syncing whitelist across devices
-- **What's New Dialog**: Shows changelog after app updates, tracks last seen version in DataStore
-- **App Icon**: Clean shield with checkmark design representing call protection
+- Android binds the screening service through the call-screening role. Legacy foreground notification, boot startup and Samsung fallback services are not registered in the manifest.
+- Onboarding persists trial start before navigating; a missing start date does not activate a trial.
+- A previous call within the configured emergency window allows a repeat caller unless an earlier rule blocks them.
+- Billing initializes at application startup. A successful Play query confirms entitlement; transient failures do not mean a confirmed absence. Cached confirmation has a bounded seven-day offline grace period.
+- Screening stops waiting for decision work after 3.5 seconds and fails open. Activity logging follows the response.
 
 ## Current State
 
-- All core code is generated and complete
-- Requires Firebase configuration (google-services.json) for cloud sync only
-- App works fully offline without Firebase account
+- Code and CI checks are not proof of production approval
+- No Firebase account is needed for local call screening
+- Subscriptions need periodic Play verification; the local trial is not server-enforced
 - Requires real device testing for call screening functionality
 - Unit tests included for rules engine logic

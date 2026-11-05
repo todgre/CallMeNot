@@ -1,1 +1,2 @@
 - [Android release toolchain upgrades](android-release-toolchain.md) — modernize Kotlin-aware processors together and rely on CI stack traces for native builds.
+- [Release credential exposure](release-credential-incident.md) — confirm the exposed service-account key was revoked before Play uploads; preserve Android signing identity.
