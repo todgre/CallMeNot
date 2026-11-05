@@ -1,6 +1,8 @@
 package com.callmenot.app
 
 import com.callmenot.app.service.isVerifiedEntitlementCacheFresh
+import com.callmenot.app.service.isSubscriptionEntitlementUsable
+import com.callmenot.app.service.SubscriptionStatus
 import com.callmenot.app.ui.screens.paywall.formatBillingPeriod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,5 +27,21 @@ class SubscriptionBillingTermsTest {
         assertFalse(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt + 604_800_000L))
         assertFalse(isVerifiedEntitlementCacheFresh(verifiedAt, verifiedAt - 1L))
         assertFalse(isVerifiedEntitlementCacheFresh(0L, verifiedAt))
+    }
+
+    @Test
+    fun activeSubscriptionCannotOutliveVerificationDuringProlongedPlayOutage() {
+        val verifiedAt = 10_000L
+        val active = SubscriptionStatus.Active(isYearly = true, purchaseTime = 1L)
+        assertTrue(isSubscriptionEntitlementUsable(active, verifiedAt, verifiedAt))
+        // A failed query/disconnect may leave the last observed status Active.
+        assertTrue(isSubscriptionEntitlementUsable(active, verifiedAt, verifiedAt + 604_799_999L))
+        assertFalse(isSubscriptionEntitlementUsable(active, verifiedAt, verifiedAt + 604_800_000L))
+        assertFalse(isSubscriptionEntitlementUsable(active, verifiedAt, verifiedAt + 700_000_000L))
+        val error = SubscriptionStatus.Error("Play unavailable")
+        assertTrue(isSubscriptionEntitlementUsable(error, verifiedAt, verifiedAt + 1L))
+        assertFalse(isSubscriptionEntitlementUsable(error, verifiedAt, verifiedAt + 604_800_000L))
+        assertFalse(isSubscriptionEntitlementUsable(SubscriptionStatus.NotSubscribed, verifiedAt, verifiedAt))
+        assertFalse(isSubscriptionEntitlementUsable(SubscriptionStatus.Pending, verifiedAt, verifiedAt))
     }
 }

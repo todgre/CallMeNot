@@ -240,13 +240,11 @@ class BillingManager @Inject constructor(
     }
 
     fun isSubscriptionActive(): Boolean {
-        return when (_subscriptionStatus.value) {
-            is SubscriptionStatus.Active -> true
-            is SubscriptionStatus.NotSubscribed,
-            is SubscriptionStatus.Pending -> false
-            is SubscriptionStatus.Loading,
-            is SubscriptionStatus.Error -> hasRecentVerifiedEntitlement()
-        }
+        val verifiedAt = context.getSharedPreferences(ENTITLEMENT_CACHE_PREFS, Context.MODE_PRIVATE)
+            .getLong(ENTITLEMENT_VERIFIED_AT_KEY, 0L)
+        return isSubscriptionEntitlementUsable(
+            _subscriptionStatus.value, verifiedAt, System.currentTimeMillis()
+        )
     }
 
     private fun cacheVerifiedEntitlement() {
@@ -261,12 +259,6 @@ class BillingManager @Inject constructor(
             .edit()
             .remove(ENTITLEMENT_VERIFIED_AT_KEY)
             .apply()
-    }
-
-    private fun hasRecentVerifiedEntitlement(): Boolean {
-        val verifiedAt = context.getSharedPreferences(ENTITLEMENT_CACHE_PREFS, Context.MODE_PRIVATE)
-            .getLong(ENTITLEMENT_VERIFIED_AT_KEY, 0L)
-        return isVerifiedEntitlementCacheFresh(verifiedAt, System.currentTimeMillis())
     }
 
     fun getMonthlyProductDetails(): ProductDetails? {
@@ -290,6 +282,18 @@ class BillingManager @Inject constructor(
 internal fun isVerifiedEntitlementCacheFresh(verifiedAt: Long, now: Long): Boolean =
     verifiedAt > 0L && now >= verifiedAt &&
         now - verifiedAt < VERIFIED_ENTITLEMENT_CACHE_TTL_MILLIS
+
+internal fun isSubscriptionEntitlementUsable(
+    status: SubscriptionStatus,
+    verifiedAt: Long,
+    now: Long
+): Boolean = when (status) {
+    SubscriptionStatus.NotSubscribed, SubscriptionStatus.Pending -> false
+    // Active is the last observed Play state, not permission to ignore the
+    // verification deadline when Play subsequently fails or disconnects.
+    is SubscriptionStatus.Active, SubscriptionStatus.Loading, is SubscriptionStatus.Error ->
+        isVerifiedEntitlementCacheFresh(verifiedAt, now)
+}
 
 sealed class SubscriptionStatus {
     object Loading : SubscriptionStatus()
